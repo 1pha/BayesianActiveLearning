@@ -21,6 +21,16 @@ I will discover with variations of models and posterior approximation.
 
 ## Reference
 ### Requirements
+```text
+python==3.7
+torch==3.10
+wandb==1.12
+
+```
+### Paper References
+
++ [Deep Bayesian Active Learning for Natural Language Processing: Results of a Large-Scale Empirical Study](https://arxiv.org/pdf/1808.05697.pdf)
++ 
 ### Code References
 + [Bayesian Neural Networks](https://github.com/JavierAntoran/Bayesian-Neural-Networks)
 + 아 쓰기 귀찮다
