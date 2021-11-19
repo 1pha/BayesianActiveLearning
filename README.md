@@ -9,7 +9,7 @@ One advantage of active learning is that we can achieve high performance with le
 
 ## Proposed Methods
 
-I will discover with variations of models and posterior approximation.
+By controlling **models**, **way of approximation** and **sampling strategy**, I will compare which methods were - ㅅㅂ
 ### Models
 + Machine Learning Models
 + Recurrent Neural Networks
