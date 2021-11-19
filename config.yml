@@ -1,0 +1,17 @@
+# Misc
+seed: 42
+
+# Data
+data_dir: "data/"
+dataset_name: "paperswithcode"
+init_data_pct: 0.05 # how much data to use
+balanced: False
+
+# Train
+
+# Active Learning
+increment_pct: 0.05 # how much data to increment during training
+approximation: "mcdropout" # mcdropout/ensemble
+acquisition:
+  "lc"
+  # for acquisition, use one of lc/mnlp/bald
