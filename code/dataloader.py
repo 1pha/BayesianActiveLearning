@@ -43,27 +43,27 @@ class PaperDataset(Dataset):
 
         data = self.dataset[idx]
 
-        token_seq = self.tokenize(data["title"]).squeeze()
+        input_ids = self.tokenize(data["title"]).squeeze()
         if "abstract" in data:
             abstract_token = self.tokenize(data["abstract"]).squeeze()
-            token_seq = torch.concat((token_seq, abstract_token))
+            input_ids = torch.concat((input_ids, abstract_token))
 
-        area_id = torch.tensor(self.area2idx[data["area"]], dtype=torch.long)
+        label = torch.tensor(self.area2idx[data["area"]], dtype=torch.long)
 
-        seq_len = len(token_seq)
+        seq_len = len(input_ids)
         if seq_len > self.config.max_seq_len:
-            token_seq = token_seq[: self.config.max_seq_len]
+            input_ids = input_ids[: self.config.max_seq_len]
             seq_len = self.config.max_seq_len
 
         else:
             zero_seq = torch.zeros(self.config.max_seq_len, dtype=torch.long)
-            zero_seq[:seq_len] = token_seq
-            seq_len = len(token_seq)
-            token_seq, zero_seq = zero_seq, token_seq
+            zero_seq[:seq_len] = input_ids
+            seq_len = len(input_ids)
+            input_ids, zero_seq = zero_seq, input_ids
 
         return {
-            "token_seq": token_seq,
-            "area_id": area_id,
+            "input_ids": input_ids,
+            "label": label,
             "seq_len": torch.tensor(seq_len, dtype=torch.long),
         }
 
