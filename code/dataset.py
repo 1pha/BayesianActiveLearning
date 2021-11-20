@@ -114,6 +114,18 @@ def load_area2idx(config):
         raise
 
 
+def build_dataloader(dataset, config):
+
+    # Preprocessed dataset
+    try:
+        dataset.set_format(type="torch")
+        dataloader = DataLoader(dataset, batch_size=config.batch_size)
+        logger.info("Successfully converted dataset to dataloader.")
+        return dataloader
+    except:
+        logger.warn("Failed to convert dataset into dataloader.")
+
+
 if __name__ == "__main__":
 
     from config import parse_arguments
