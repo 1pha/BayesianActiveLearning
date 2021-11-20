@@ -25,7 +25,10 @@ By controlling **models**, **way of approximation** and **sampling strategy**, I
 python==3.7
 torch==3.10
 wandb==1.12
-
+spacy==3.1
+spacy-transformers==1.1.2
+transformers==4.5
+datasets=
 ```
 ### Paper References
 
