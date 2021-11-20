@@ -28,8 +28,11 @@ def build_dataset(config, split):
     dataset = initialize_dataset(full_dataset, config, split)
 
     preprocessor = build_preprocessor(config)
+    vocab_size = len(preprocessor.tokenizer.vocab.strings)
     tokenize = preprocessor.batch_tokenize
+
     area2idx = load_area2idx(config)
+    num_labels = len(area2idx)
 
     def batch_encode(example):
 
@@ -43,13 +46,13 @@ def build_dataset(config, split):
 
         return {
             "input_ids": input_ids,
-            "label": label,
+            "labels": label,
         }
 
     remove_columns = ["area", "title"]
     remove_columns += ["abstract"] if "abstract" in dataset else []
     dataset = dataset.map(batch_encode, batched=True, remove_columns=remove_columns)
-    return dataset
+    return dataset, vocab_size, num_labels
 
 
 def initialize_dataset(dataset, config, split):
@@ -119,7 +122,9 @@ def build_dataloader(dataset, config):
     # Preprocessed dataset
     try:
         dataset.set_format(type="torch")
-        dataloader = DataLoader(dataset, batch_size=config.batch_size)
+        dataloader = DataLoader(
+            dataset, batch_size=config.batch_size, pin_memory=config.pin_memory
+        )
         logger.info("Successfully converted dataset to dataloader.")
         return dataloader
     except:
