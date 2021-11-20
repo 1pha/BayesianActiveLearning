@@ -4,14 +4,15 @@ from pathlib import Path
 
 from sklearn.model_selection import train_test_split
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from datasets import load_from_disk
 import datasets
+from torch.utils.data.dataloader import DataLoader
 
 from preprocess import Preprocessor
 
 logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    format="[%(asctime)s] %(levelname)s(%(name)s): %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
     level=logging.INFO,
 )
@@ -145,10 +146,42 @@ class PaperDataset(Dataset):
         return repr(self.dataset)
 
 
+def collate_fn(batch):
+
+    # return {
+    #     "input_ids": torch.stack([b["input_ids"] for b in batch]),
+    #     "labels": torch.stack([b["label"] for b in batch]),
+    #     "seq_len": torch.stack([b["seq_len"] for b in batch]),
+    # }
+    data = {
+        "input_ids": [],
+        "labels": [],
+        "seq_len": [],
+    }
+    for b in batch:
+        data["input_ids"].append(b["input_ids"])
+        data["labels"].append(b["label"])
+        data["seq_len"].append(b["seq_len"])
+
+    return {k: torch.stack(v) for k, v in data.items()}
+
+
+def build_dataloader(config, split):
+
+    dataset = PaperDataset(config, split)
+    dataloader = DataLoader(
+        dataset, batch_size=config.batch_size, shuffle=True, collate_fn=collate_fn
+    )
+
+    return dataloader
+
+
 if __name__ == "__main__":
 
     from config import parse_arguments
 
-    data_args, training_args = parse_arguments()
-    dataset = PaperDataset(config=data_args)
-    print(dataset)
+    data_args, training_args, model_args = parse_arguments()
+    # dataset = PaperDataset(config=data_args)
+    # print(dataset)
+
+    print(build_dataloader(data_args))

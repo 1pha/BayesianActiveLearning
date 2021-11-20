@@ -50,6 +50,10 @@ class DataArguments:
         metadata={"help": "Choose spacy model. Please use en_core_web_trf only."},
     )
 
+    batch_size: int = field(
+        default=128, metadata={"help": "Number of data per batch. Default=128."}
+    )
+
 
 @dataclass
 class TrainerArguments:
@@ -84,8 +88,23 @@ class ModelArguments:
             "help": "Maximum sequence length. Default value is 128. If you are using abstract, please use larger sequence length."
         },
     )
-    embeeding_dim: int = field(
+    embed_dim: int = field(
         default=768, metadata={"help": "Embedding dimension used inside the models."}
+    )
+    num_layers: int = field(
+        default=6, metadata={"help": "Number of hidden layers for models."}
+    )
+    intermediate_size: int = field(
+        default=768,
+        metadata={
+            "help": "Intermediate size of the vector that is used in feed-forward"
+        },
+    )
+    dropout_proba: float = field(
+        default=0.2,
+        metadata={
+            "help": "Dropout ratio used in the model. Use 20% for default and all same dropout ratio will be used in attention, feedforward and last classifier layer in transformer models."
+        },
     )
 
 
