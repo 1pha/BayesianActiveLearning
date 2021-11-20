@@ -1,15 +1,17 @@
+import json
+import logging
 from pathlib import Path
+
 from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset, DataLoader
+import torch
+from torch.utils.data import Dataset
 from datasets import load_from_disk
 import datasets
 
 from preprocess import Preprocessor
 
-import logging
-
 logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(name)s - PID: %(process)d -  %(message)s",
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
     level=logging.INFO,
 )
@@ -34,21 +36,34 @@ class PaperDataset(Dataset):
             self.full_dataset, config.init_pct, split
         )
         self.setup_preprocessor(config)
+        self.load_area2idx(config)
+        logger.info(f"{split.capitalize()} dataloader was successfully loaded.")
 
     def __getitem__(self, idx):
 
-        # TODO preprocessing! - tokenize and map areas
         data = self.dataset[idx]
 
-        title_token = self.preprocessor.tokenize(data["title"])
+        token_seq = self.tokenize(data["title"])
+        if "abstract" in data:
+            abstract_token = self.tokenize(data["abstract"])
+            token_seq = torch.concat((token_seq, abstract_token), 1)
 
-        return self.dataset[idx]
+        area_id = torch.tensor(self.area2idx[data["area"]], dtype=torch.long)
+        seq_len = torch.tensor(len(token_seq), dtype=torch.long)
+
+        return {
+            "token_seq": token_seq,
+            "area_id": area_id,
+            "seq_len": seq_len,
+        }
 
     def __len__(self):
 
         return len(self.dataset)
 
     def balance(self):
+
+        # TODO make a method to balance the labels
 
         pass
 
@@ -103,6 +118,18 @@ class PaperDataset(Dataset):
 
         self.preprocessor = Preprocessor(config)
         self.tokenize = self.preprocessor.tokenize
+
+    def load_area2idx(self, config):
+
+        fname = Path(f"{config.asset_dir}/{config.area2idx}")
+        try:
+            with open(fname) as f:
+                self.area2idx = json.load(f)
+            logger.info(f"Successfully loaded mapper file {fname}")
+
+        except:
+            logger.warn(f"Failed to load mapper file {fname} ")
+            raise
 
     def __repr__(self):
         return repr(self.dataset)

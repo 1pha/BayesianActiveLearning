@@ -3,6 +3,17 @@ from dataclasses import dataclass, field
 
 @dataclass
 class DataArguments:
+
+    asset_dir: str = field(
+        default="../assets/",
+        metadata={
+            "help": "Directory of assets where mapper and model checkpoints are saved."
+        },
+    )
+    area2idx: str = field(
+        default="area2idx.json",
+        metadata={"help": "Name of the area-index mapper json file."},
+    )
     data_dir: str = field(default="data/", metadata={"help": "Where data locates"})
     dataset_name: str = field(
         default="paperswithcode",
@@ -16,8 +27,18 @@ class DataArguments:
     )
 
     balanced: bool = field(default=False, metadata={"help": ""})
-    use_abstract: bool = field(default=False, metadata={"help": ""})
-    use_task_id: bool = field(default=False, metadata={"help": ""})
+    use_abstract: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to use abstract or not. Default to False (not using abstract)."
+        },
+    )
+    use_task_id: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to use task_id or not. Default to False (not using task_id)."
+        },
+    )
     preprocessor: str = field(
         default="spacy",
         metadata={
@@ -32,6 +53,7 @@ class DataArguments:
 
 @dataclass
 class TrainerArguments:
+
     seed: int = field(default=42, metadata={"help": "Fixate seed."})
     model_name_or_path: str = field(
         default="cnnlstm",
@@ -73,8 +95,16 @@ def parse_arguments():
 
     parser = HfArgumentParser((DataArguments, TrainerArguments, ModelArguments))
     data_args, training_args, model_args = parser.parse_args_into_dataclasses()
+
+    # Fixate Seed
     set_seed(training_args.seed)
+
+    # Exchange configurations between argument set.
     data_args.seed = training_args.seed
+    data_args.max_seq_len = model_args.max_seq_len
+
+    # TODO Check dependency
+
     return data_args, training_args, model_args
 
 
