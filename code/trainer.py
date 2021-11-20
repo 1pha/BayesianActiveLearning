@@ -1,7 +1,9 @@
+import torch
 from torch.optim import Adam, AdamW
 import torch.nn as nn
 from transformers import get_linear_schedule_with_warmup
 from load_model import load_model
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 
 class NaiveTrainer:
@@ -64,7 +66,7 @@ class NaiveTrainer:
                 optimizer_grouped_parameters, lr=self.training_args.learning_rate
             )
             self.optimizer.zero_grad()
-            
+
             t_total = (
                 len(self.train_dataloader)
                 // self.training_args.gradient_accumulation_steps
@@ -89,14 +91,26 @@ class NaiveTrainer:
         if dataset is None:
             dataset = self.training_dataset
 
+        predictions, labels, losses = [], [], []
         for batch in dataset:
 
             batch = {k: v.cuda() for k, v in batch.items()}
             logits, predicted_class = self.model(**batch)
+
             loss = self.loss_fn(logits, batch["labels"])
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
+
+            predictions.extend(predicted_class.cpu().tolist())
+            labels.extend(batch["labels"].cpu().tolist())
+            losses.append(loss.items())
+
+        loss
+        metrics = self.get_metric(labels, predictions)
+        torch.cuda.empty_cache()
+
+        return loss, metrics
 
     def valid(self, dataset=None):
 
@@ -105,6 +119,13 @@ class NaiveTrainer:
     def save_state(self):
 
         pass
+
+    def get_metric(self, true, pred):
+
+        metrics = {
+            "acc": accuracy_score(true, pred),
+            "auroc": roc_auc_score(true, pred),
+        }
 
 
 class ActiveTrainer(NaiveTrainer):
