@@ -18,6 +18,16 @@ class DataArguments:
     balanced: bool = field(default=False, metadata={"help": ""})
     use_abstract: bool = field(default=False, metadata={"help": ""})
     use_task_id: bool = field(default=False, metadata={"help": ""})
+    preprocessor: str = field(
+        default="spacy",
+        metadata={
+            "help": "Which preprocessing modules should be used. You can use one of spacy/nltk/huggingface tokenizer."
+        },
+    )
+    spacy_model: str = field(
+        default="en_core_web_trf",
+        metadata={"help": "Choose spacy model. Please use en_core_web_trf only."},
+    )
 
 
 @dataclass
@@ -46,8 +56,14 @@ class TrainerArguments:
 @dataclass
 class ModelArguments:
 
-    num_layers: int = field(
-        default=2, metadata={"help": "Sample feature built for no error, for now."}
+    max_seq_len: int = field(
+        default=128,
+        metadata={
+            "help": "Maximum sequence length. Default value is 128. If you are using abstract, please use larger sequence length."
+        },
+    )
+    embeeding_dim: int = field(
+        default=768, metadata={"help": "Embedding dimension used inside the models."}
     )
 
 
@@ -57,11 +73,12 @@ def parse_arguments():
 
     parser = HfArgumentParser((DataArguments, TrainerArguments, ModelArguments))
     data_args, training_args, model_args = parser.parse_args_into_dataclasses()
+    set_seed(training_args.seed)
     data_args.seed = training_args.seed
     return data_args, training_args, model_args
 
 
 if __name__ == "__main__":
 
-    data_args, training_args = parse_arguments()
-    print(data_args, training_args)
+    data_args, training_args, model_args = parse_arguments()
+    print(data_args, training_args, model_args)
