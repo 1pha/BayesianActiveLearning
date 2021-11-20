@@ -59,11 +59,6 @@ class DataArguments:
 class TrainerArguments:
 
     seed: int = field(default=42, metadata={"help": "Fixate seed."})
-    model_name_or_path: str = field(
-        default="cnnlstm",
-        metadata={"help": "Selection of model. One of svm/cnnlstm/bert can be used."},
-    )
-
     increment_pct: float = field(
         default=0.05, metadata={"help": "How much data to be incremented. (In %)"}
     )
@@ -82,6 +77,10 @@ class TrainerArguments:
 @dataclass
 class ModelArguments:
 
+    model_name_or_path: str = field(
+        default="cnnlstm",
+        metadata={"help": "Selection of model. One of svm/cnnlstm/bert can be used."},
+    )
     max_seq_len: int = field(
         default=128,
         metadata={
