@@ -25,7 +25,6 @@ class DataArguments:
             "help": "How much data to use in the first place. Use 1.0 for naive training with a full dataset."
         },
     )
-
     balanced: bool = field(default=False, metadata={"help": ""})
     use_abstract: bool = field(
         default=False,
@@ -53,12 +52,22 @@ class DataArguments:
     batch_size: int = field(
         default=128, metadata={"help": "Number of data per batch. Default=128."}
     )
+    pin_memory: bool = field(
+        default=True,
+        metadata={"help": "Setting this true will speed-up transferring data to cuda."},
+    )
 
 
 @dataclass
 class TrainerArguments:
 
     seed: int = field(default=42, metadata={"help": "Fixate seed."})
+    active_learning: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to use active learning or not. If set to False, some configurations might change in order to train in naive way."
+        },
+    )
     increment_pct: float = field(
         default=0.05, metadata={"help": "How much data to be incremented. (In %)"}
     )
@@ -72,14 +81,43 @@ class TrainerArguments:
             "help": "Which acquisition function to use. You can either use lc(Least Confidence)/mnlp/bald/batchbald"
         },
     )
+    save_dir: str = field(
+        default="default_output", metadata={"help": "Saving directory. Must be given."}
+    )
+    overwrite_output_dir: bool = field(
+        default=False, metadata={"help": "If True, overwrite to directory"}
+    )
+    do_train: bool = field(default=False, metadata={"help": "Whether to train or not."})
+    do_valid: bool = field(
+        default=False, metadata={"help": "Whether to test metric with validation data."}
+    )
+    do_test: bool = field(
+        default=False,
+        metadata={"help": "Whether to test metric with test data. No peeking!"},
+    )
+    num_train_epochs: int = field(
+        default=10, metadata={"help": "Number of epochs to train."}
+    )
+    gradient_accumulation_steps: int = field(
+        default=1, metadata={"help": "Gradient accumulation steps."}
+    )
+    learning_rate: float = field(
+        default=1e-4, metadata={"help": "Learning Rate. Defaults to 1e-4."}
+    )
+    warmup_steps: int = field(
+        default=100, metadata={"help": "Warmup steps for transformer models."}
+    )
 
 
 @dataclass
 class ModelArguments:
 
     model_name_or_path: str = field(
-        default="cnnlstm",
+        default="bert",
         metadata={"help": "Selection of model. One of svm/cnnlstm/bert can be used."},
+    )
+    vocab_size: int = field(
+        default=83931, metadata={"help": "Number of vocabulary size in preprocessor."}
     )
     max_seq_len: int = field(
         default=128,
@@ -93,18 +131,25 @@ class ModelArguments:
     num_layers: int = field(
         default=6, metadata={"help": "Number of hidden layers for models."}
     )
+    num_attention_heads: int = field(
+        default=8,
+        metadata={
+            "help": "Number of attention heads. Default to 8, bert-base uses 12."
+        },
+    )
     intermediate_size: int = field(
         default=768,
         metadata={
             "help": "Intermediate size of the vector that is used in feed-forward"
         },
     )
-    dropout_proba: float = field(
+    dropout_prob: float = field(
         default=0.2,
         metadata={
             "help": "Dropout ratio used in the model. Use 20% for default and all same dropout ratio will be used in attention, feedforward and last classifier layer in transformer models."
         },
     )
+    num_labels: int = field(default=16, metadata={"help": "Number of total labels."})
 
 
 def parse_arguments():
@@ -122,6 +167,10 @@ def parse_arguments():
     data_args.max_seq_len = model_args.max_seq_len
 
     # TODO Check dependency
+    if not training_args.active_learning:
+        data_args.init_pct = 1.0
+
+    model_args.model_name_or_path = model_args.model_name_or_path.lower()
 
     return data_args, training_args, model_args
 
