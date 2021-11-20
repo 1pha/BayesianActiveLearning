@@ -37,17 +37,15 @@ class Preprocessor:
         if not hasattr(self, "tokenizer"):
             self.setup_spacy()
 
-        if isinstance(sentence, str):
-
-            # single instance will return tensor
-            tokenized = self.tokenizer(sentence)
-            return tokenized._.trf_data.tokens["input_ids"]
+        # single instance will return tensor
+        tokenized = self.tokenizer(sentence)
+        return tokenized._.trf_data.tokens["input_ids"]
 
     def batch_tokenize(self, sentences: list) -> list:
 
-        return [self.tokenize(s).squeeze().tolist() for s in sentences]
+        return [self.truncate(self.tokenize(s).squeeze().tolist()) for s in sentences]
 
-    def truncate(self, input_ids):
+    def truncate(self, input_ids: list):
 
         seq_len = len(input_ids)
         if seq_len > self.config.max_seq_len:
@@ -55,9 +53,9 @@ class Preprocessor:
             seq_len = self.config.max_seq_len
 
         else:
-            zero_seq = torch.zeros(self.config.max_seq_len, dtype=torch.long)
-            zero_seq[:seq_len] = input_ids
-            input_ids, zero_seq = zero_seq, input_ids
+            zero_pad_len = self.config.max_seq_len - seq_len
+            zero_seq = [0 for _ in range(zero_pad_len)]
+            input_ids += zero_seq
 
         return input_ids
 
