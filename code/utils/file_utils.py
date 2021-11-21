@@ -38,27 +38,42 @@ def check_dir(config):
     output_dir = config.output_dir
     overwrite_flag = config.overwrite_output_dir
 
-    if not overwrite_flag:
-        # Don't overwrite
-        n = 0
-        output_dir += f"_({n})"
-        while os.path.exists(output_dir):
-            # Loop will break when output_dir_(n) does not exist
-            n += 1
-            output_dir += f"_({n})"
+    if not os.path.exists(output_dir):
+
+        os.mkdir(output_dir)
         return output_dir
+
     else:
-        # Fine to overwrite
-        return output_dir
+
+        if not overwrite_flag:
+
+            # Don't overwrite
+            n = 0
+            output_dir_extra = output_dir
+            while os.path.exists(output_dir_extra):
+                # Loop will break when output_dir_(n) does not exist
+                output_dir_extra = output_dir
+                output_dir_extra += f" ({n})"
+                n += 1
+
+            os.mkdir(output_dir_extra)
+            config.output_dir = output_dir_extra
+
+            return output_dir_extra
+
+        else:
+            # Fine to overwrite
+            return output_dir
 
 
 def save_state(model, step, config):
 
     """config: TrainingArguments"""
 
-    output_dir = check_dir(config)
+    output_dir = config.output_dir
 
-    fname = Path(f"{output_dir}/{str(step).zfill(4)}.pt")
+    os.makedirs(Path(f"{output_dir}/checkpoints"), exist_ok=True)
+    fname = Path(f"{output_dir}/checkpoints/{str(step).zfill(3)}.pt")
     torch.save(model.state_dict(), fname)
 
 

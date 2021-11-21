@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam, AdamW
 from transformers import get_linear_schedule_with_warmup
+from utils.file_utils import save_state
 
 from load_model import load_model
 
@@ -122,6 +123,7 @@ class NaiveTrainer:
 
     def run(self, training_dataset=None, validation_dataset=None, test_dataset=None):
 
+        checkpoint_period = 0
         pbar = trange(self.training_args.num_train_epochs, desc="Epoch")
         for e in pbar:
 
@@ -140,6 +142,11 @@ class NaiveTrainer:
             )
             postfix = train_metrics["auroc"] if postfix == 0 else postfix
             pbar.set_postfix(AUROC=f"{postfix:4f}")
+
+            checkpoint_period += 1
+            if checkpoint_period % self.training_args.checkpoint_period == 0:
+                save_state(self.model, e, self.training_args)
+                checkpoint_period = 0
 
     def train(self, dataset=None):
 

@@ -2,10 +2,10 @@ import logging
 
 import wandb
 
-from config import parse_arguments, get_wandb_config
+from config import parse_arguments, get_wandb_config, save_config
 from dataset import build_dataset, build_dataloader
 from trainer import NaiveTrainer, ActiveTrainer
-from utils.file_utils import generate_runname_tags
+from utils.file_utils import generate_runname_tags, check_dir
 
 logging.basicConfig(
     format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s",
@@ -25,6 +25,8 @@ def main():
         name=run_name,
         config=get_wandb_config(data_args, training_args, model_args),
     )
+    training_args.output_dir = check_dir(training_args)
+    logger.info(f"Your results will be saved in: {training_args.output_dir}")
     logger.info(f"Start Training.")
 
     # 1. Initialization
@@ -75,6 +77,12 @@ def main():
         )
     )
     trainer.run()
+    save_config(
+        training_args.output_dir,
+        data_args=data_args,
+        training_args=training_args,
+        model_args=model_args,
+    )
 
 
 if __name__ == "__main__":

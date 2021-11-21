@@ -141,6 +141,9 @@ class TrainerArguments(BaseArguments):
     overwrite_output_dir: bool = field(
         default=False, metadata={"help": "If True, overwrite to directory"}
     )
+    checkpoint_period: int = field(
+        default=5, metadata={"help": "Period of checkpoints to save."}
+    )
     do_train: bool = field(default=False, metadata={"help": "Whether to train or not."})
     do_valid: bool = field(
         default=False, metadata={"help": "Whether to test metric with validation data."}
@@ -238,7 +241,7 @@ def save_config(output_dir, **kwargs):
         arguments[arg_name] = args.to_dict()
 
     with open(Path(f"{output_dir}/config.json"), "w") as f:
-        json.dump(f, arguments)
+        json.dump(arguments, f)
 
 
 def load_config(output_dir):
