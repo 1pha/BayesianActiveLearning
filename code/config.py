@@ -53,7 +53,7 @@ class BaseArguments:
 class DataArguments(BaseArguments):
 
     asset_dir: str = field(
-        default="../assets/",
+        default="./assets/",
         metadata={
             "help": "Directory of assets where mapper and model checkpoints are saved."
         },
@@ -110,6 +110,10 @@ class DataArguments(BaseArguments):
 class TrainerArguments(BaseArguments):
 
     seed: int = field(default=42, metadata={"help": "Fixate seed."})
+    configuration_keys: str = field(
+        default="configuration_keys.json",
+        metadata={"help": "Json file of the configuration key mapper."},
+    )
     active_learning: bool = field(
         default=False,
         metadata={
@@ -121,7 +125,9 @@ class TrainerArguments(BaseArguments):
     )
     approximation: str = field(
         default="mcdropout",
-        metadata={"help": "Which approximation to use for distribution of the "},
+        metadata={
+            "help": "Which approximation to use for distribution of the model weights. Use one of single/mc/ensemble"
+        },
     )
     acquisition: str = field(
         default="lc",
@@ -130,7 +136,7 @@ class TrainerArguments(BaseArguments):
         },
     )
     output_dir: str = field(
-        default="default_output", metadata={"help": "Saving directory. Must be given."}
+        default="output/default", metadata={"help": "Saving directory. Must be given."}
     )
     overwrite_output_dir: bool = field(
         default=False, metadata={"help": "If True, overwrite to directory"}
@@ -242,6 +248,37 @@ def load_config(output_dir):
         return json.load(f)
 
     # TODO needs revision
+
+
+def get_wandb_config(data_args, training_args, model_args):
+
+    config = dict(**model_args.to_dict())
+    config = config.update(
+        {
+            # Training Arguments
+            "active_learning": training_args.active_learning,
+            "increment_pct": training_args.increment_pct,
+            "approximation": training_args.approximation,
+            "acquisition": training_args.acquisition,
+            "output_dir": training_args.output_dir,
+            "overwrite_output_dir": training_args.overwrite_output_dir,
+            "do_train": training_args.do_train,
+            "do_valid": training_args.do_valid,
+            "do_test": training_args.do_test,
+            "num_train_epochs": training_args.num_train_epochs,
+            "optimizer": training_args.optimizer,
+            "learning_rate": training_args.learning_rate,
+            "warmup_steps": training_args.warmup_steps,
+            "weight_decay": training_args.weight_decay,
+            # Data Arguments
+            "init_pct": data_args.init_pct,
+            "balanced": data_args.balanced,
+            "use_abstract": data_args.use_abstract,
+            "use_task_id": data_args.use_task_id,
+            "batch_size": data_args.batch_size,
+        }
+    )
+    return config
 
 
 def parse_arguments():

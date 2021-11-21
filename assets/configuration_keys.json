@@ -1,0 +1,32 @@
+{
+    "approximation": {
+        "single": "Single",
+        "mc": "MC-Dropout",
+        "ensemble": "Full-Ensemble"
+    },
+    "acquisition": {
+        "random": "RANDOM",
+        "lc": "LC",
+        "mnlp": "MNLP",
+        "bald": "BALD",
+        "batchbald": "B-BALD"
+    },
+    "model_name_or_path": {
+        "lstm": {
+            "family": "recurrent",
+            "name": "LSTM"
+        },
+        "cnnlstm": {
+            "family": "recurrent",
+            "name": "CNN-LSTM"
+        },
+        "bert": {
+            "family": "transformers",
+            "name": "BERT"
+        },
+        "electra": {
+            "family": "electra",
+            "name": "ELECTRA"
+        }
+    }
+}
