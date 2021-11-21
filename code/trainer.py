@@ -1,3 +1,4 @@
+import os
 import logging
 
 from sklearn.metrics import accuracy_score, roc_auc_score
@@ -130,6 +131,39 @@ class NaiveTrainer:
                 # If do_train is set to False, there is not training set for loop
                 return 0, self.get_metric()
 
+        logits, labels, losses = [], [], []
+        for batch in dataset:
+
+            if self.training_args.use_gpu:
+                batch = {k: v.cuda() for k, v in batch.items()}
+            logit, _ = self.model(batch)
+
+            loss = self.loss_fn(logit, batch["labels"])
+            loss.backward()
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+
+            logits.append(nn.Softmax(dim=1)(logit))
+            labels.append(batch["labels"].cpu())
+            losses.append(loss.item())
+
+        loss = sum(losses) / len(losses)
+
+        labels = torch.cat(labels).numpy()
+        logits = torch.vstack(logits).detach().cpu().numpy()
+        metrics = self.get_metric(y_true=labels, y_pred=logits)
+        torch.cuda.empty_cache()
+
+        return (loss, metrics)
+
+    def valid(self, dataset=None):
+
+        if dataset is None:
+            dataset = self.validation_dataset
+            if dataset is None:
+                # If do_train is set to False, there is not training set for loop
+                return 0, self.get_metric()
+
         predictions, labels, losses = [], [], []
         for batch in dataset:
 
@@ -138,13 +172,10 @@ class NaiveTrainer:
             logits, predicted_class = self.model(batch)
 
             loss = self.loss_fn(logits, batch["labels"])
-            loss.backward()
-            self.optimizer.step()
-            self.optimizer.zero_grad()
 
             predictions.extend(predicted_class.cpu().tolist())
             labels.extend(batch["labels"].cpu().tolist())
-            losses.append(loss.items())
+            losses.append(loss.item())
 
         loss = sum(losses) / len(losses)
         metrics = self.get_metric(labels, predictions)
@@ -152,22 +183,14 @@ class NaiveTrainer:
 
         return (loss, metrics)
 
-    def valid(self, dataset=None):
+    def get_metric(self, y_true=None, y_pred=None):
 
-        pass
-
-    def save_state(self):
-
-        pass
-
-    def get_metric(self, true=None, pred=None):
-
-        if true is None and pred is None:
+        if y_true is None and y_pred is None:
             return {"acc": 0, "auroc": 0}
         else:
             return {
-                "acc": accuracy_score(true, pred),
-                "auroc": roc_auc_score(true, pred),
+                "acc": accuracy_score(y_true, y_pred.argmax(axis=1)),
+                "auroc": roc_auc_score(y_true, y_pred, multi_class="ovr"),
             }
 
 

@@ -19,24 +19,28 @@ def main():
 
     # 1. Initialization
     #   a. Initialize Dataset
-    dataset, model_args.vocab_size, model_args.num_labels = build_dataset(data_args, "train")
-
     if training_args.do_train:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(data_args, "train")
+        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
+            data_args, "train"
+        )
         train_dataloader = build_dataloader(
             dataset,
             data_args,
         )
 
     if training_args.do_valid:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(data_args, "valid")
+        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
+            data_args, "valid"
+        )
         valid_dataloader = build_dataloader(
             dataset,
             data_args,
         )
 
     if training_args.do_test:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(data_args, "test")
+        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
+            data_args, "test"
+        )
         test_dataloader = build_dataloader(
             dataset,
             data_args,
@@ -61,7 +65,6 @@ def main():
         )
     )
     trainer.train()
-    trainer.save_state()
 
 
 if __name__ == "__main__":
