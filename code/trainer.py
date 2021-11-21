@@ -1,7 +1,6 @@
-import os
 import logging
-from sklearn.utils import validation
 
+import wandb
 from tqdm import trange
 from sklearn.metrics import accuracy_score, roc_auc_score
 
@@ -66,7 +65,7 @@ class NaiveTrainer:
             logger.info(
                 f"{model_name} was selected. Default configuration is used - naive Adam."
             )
-            self.optimizer = Adam(self.model)
+            self.optimizer = Adam(self.model.parameters())
             self.optimizer.zero_grad()
 
     def setup_transformer(self):
@@ -127,8 +126,12 @@ class NaiveTrainer:
         for e in pbar:
 
             train_loss, train_metrics = self.train(training_dataset)
-            valid_loss, valid_metrics = self.valid(validation_dataset)
-            test_loss, test_metrics = self.valid(test_dataset)
+            valid_loss, valid_metrics = self.valid(
+                validation_dataset=validation_dataset
+            )
+            test_loss, test_metrics = self.valid(test_dataset=test_dataset)
+
+            wandb.log({"epoch": e}, commit=True)
 
             postfix = (
                 test_metrics["auroc"]
@@ -140,6 +143,7 @@ class NaiveTrainer:
 
     def train(self, dataset=None):
 
+        self.model.train()
         if dataset is None:
             dataset = self.training_dataset
             if dataset is None:
@@ -156,45 +160,83 @@ class NaiveTrainer:
             loss = self.loss_fn(logit, batch["labels"])
             loss.backward()
             self.optimizer.step()
+            self.scheduler.step()
             self.optimizer.zero_grad()
 
             logits.append(nn.Softmax(dim=1)(logit))
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
+            torch.cuda.empty_cache()
+
         loss = sum(losses) / len(losses)
 
         labels = torch.cat(labels).numpy()
         logits = torch.vstack(logits).detach().cpu().numpy()
         metrics = self.get_metric(y_true=labels, y_pred=logits)
-        torch.cuda.empty_cache()
+
+        wandb.log(
+            {
+                "train_loss(step)": loss,
+                "train_acc(epoch)": metrics["acc"],
+                "train_auroc(epoch)": metrics["auroc"],
+            },
+            commit=False,
+        )
 
         return (loss, metrics)
 
-    def valid(self, dataset=None):
+    def valid(self, validation_dataset=None, test_dataset=None):
 
-        if dataset is None:
-            dataset = self.validation_dataset
+        self.model.eval()
+        if validation_dataset is None and test_dataset is None:
+            dataset = (
+                self.validation_dataset
+                if self.validation_dataset is not None
+                else self.test_dataset
+            )
+            prefix = "valid" if self.validation_dataset is not None else "test"
             if dataset is None:
-                # If do_valid is set to False, there is no validation set for loop
+                # If do_valid or do_test is set to False, there is no validation set for loop
                 return 0, self.get_metric()
 
-        predictions, labels, losses = [], [], []
+        elif validation_dataset is not None:
+            dataset = validation_dataset
+            prefix = "valid"
+
+        elif test_dataset is not None:
+            dataset = test_dataset
+            prefix = "test"
+
+        logits, labels, losses = [], [], []
         for batch in dataset:
 
             if self.training_args.use_gpu:
                 batch = {k: v.cuda() for k, v in batch.items()}
-            logits, predicted_class = self.model(batch)
+            logit, _ = self.model(batch)
 
-            loss = self.loss_fn(logits, batch["labels"])
+            loss = self.loss_fn(logit, batch["labels"])
 
-            predictions.extend(predicted_class.cpu().tolist())
-            labels.extend(batch["labels"].cpu().tolist())
+            logits.append(nn.Softmax(dim=1)(logit))
+            labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
+            torch.cuda.empty_cache()
+
         loss = sum(losses) / len(losses)
-        metrics = self.get_metric(labels, predictions)
-        torch.cuda.empty_cache()
+
+        labels = torch.cat(labels).numpy()
+        logits = torch.vstack(logits).detach().cpu().numpy()
+        metrics = self.get_metric(y_true=labels, y_pred=logits)
+
+        wandb.log(
+            {
+                f"{prefix}_loss(step)": loss,
+                f"{prefix}_acc(epoch)": metrics["acc"],
+                f"{prefix}_auroc(epoch)": metrics["auroc"],
+            },
+            commit=False,
+        )
 
         return (loss, metrics)
 
