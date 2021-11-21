@@ -52,6 +52,7 @@ def build_dataset(config, split):
     remove_columns = ["area", "title"]
     remove_columns += ["abstract"] if "abstract" in dataset else []
     dataset = dataset.map(batch_encode, batched=True, remove_columns=remove_columns)
+    logger.info(f"{split} dataset was properly preprocessed.")
     return dataset, vocab_size, num_labels
 
 
