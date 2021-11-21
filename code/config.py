@@ -156,18 +156,27 @@ class TrainerArguments(BaseArguments):
         },
     )
     learning_rate: float = field(
-        default=1e-4, metadata={"help": "Learning Rate. Defaults to 1e-4."}
+        default=2e-5, metadata={"help": "Learning Rate. Defaults to 1e-4."}
     )
     warmup_steps: int = field(
         default=100, metadata={"help": "Warmup steps for transformer models."}
     )
     weight_decay: float = field(
-        default=0, metadata={"help": "Decoupled weight decay to apply in AdamW."}
+        default=0.01, metadata={"help": "Decoupled weight decay to apply in AdamW."}
     )
     use_gpu: bool = field(
         default=True,
         metadata={
             "help": "Whether to use gpu or not. If set to False, it will force the device not to use gpu even though you have it."
+        },
+    )
+    project: str = field(
+        default="Active Learning", metadata={"help": "Name of the wandb project name."}
+    )
+    run_name: str = field(
+        default=None,
+        metadata={
+            "help": "Run name to be displayed on wandb. If None is given, it will generate a run_name with a certain pattern."
         },
     )
 
