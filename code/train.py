@@ -1,5 +1,7 @@
 import logging
 
+import wandb
+
 from config import parse_arguments
 from dataset import build_dataset, build_dataloader
 from trainer import NaiveTrainer, ActiveTrainer
@@ -15,6 +17,7 @@ logger = logging.getLogger("main.py")
 def main():
 
     data_args, training_args, model_args = parse_arguments()
+    wandb.init(project=training_args.project, tags=["Naive"])
     logger.info(f"Start Training.")
 
     # 1. Initialization
