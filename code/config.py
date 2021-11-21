@@ -50,7 +50,7 @@ class DataArguments:
     )
 
     batch_size: int = field(
-        default=128, metadata={"help": "Number of data per batch. Default=128."}
+        default=64, metadata={"help": "Number of data per batch. Default=128."}
     )
     pin_memory: bool = field(
         default=True,
@@ -101,11 +101,26 @@ class TrainerArguments:
     gradient_accumulation_steps: int = field(
         default=1, metadata={"help": "Gradient accumulation steps."}
     )
+    optimizer: str = field(
+        default="adamw",
+        metadata={
+            "help": "Which optimizer to use. If Transformer-family is selected, AdamW will be used, and adam will be used if one of recurrent-family is chosen as a model."
+        },
+    )
     learning_rate: float = field(
         default=1e-4, metadata={"help": "Learning Rate. Defaults to 1e-4."}
     )
     warmup_steps: int = field(
         default=100, metadata={"help": "Warmup steps for transformer models."}
+    )
+    weight_decay: float = field(
+        default=0, metadata={"help": "Decoupled weight decay to apply in AdamW."}
+    )
+    use_gpu: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to use gpu or not. If set to False, it will force the device not to use gpu even though you have it."
+        },
     )
 
 
@@ -154,6 +169,7 @@ class ModelArguments:
 
 def parse_arguments():
 
+    import torch
     from transformers import HfArgumentParser, set_seed
 
     parser = HfArgumentParser((DataArguments, TrainerArguments, ModelArguments))
@@ -169,6 +185,12 @@ def parse_arguments():
     # TODO Check dependency
     if not training_args.active_learning:
         data_args.init_pct = 1.0
+
+    if training_args.use_gpu and torch.cuda.is_available():
+        pass
+
+    else:
+        training_args.use_gpu = False
 
     model_args.model_name_or_path = model_args.model_name_or_path.lower()
 
