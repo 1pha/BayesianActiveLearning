@@ -1,6 +1,8 @@
 import os
 import logging
+from sklearn.utils import validation
 
+from tqdm import trange
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 import torch
@@ -119,16 +121,29 @@ class NaiveTrainer:
 
         pass
 
-    def run(self):
+    def run(self, training_dataset=None, validation_dataset=None, test_dataset=None):
 
-        pass
+        pbar = trange(self.training_args.num_train_epochs, desc="Epoch")
+        for e in pbar:
+
+            train_loss, train_metrics = self.train(training_dataset)
+            valid_loss, valid_metrics = self.valid(validation_dataset)
+            test_loss, test_metrics = self.valid(test_dataset)
+
+            postfix = (
+                test_metrics["auroc"]
+                if test_metrics["auroc"] == 0
+                else valid_metrics["auroc"]
+            )
+            postfix = train_metrics["auroc"] if postfix == 0 else postfix
+            pbar.set_postfix(AUROC=f"{postfix:4f}")
 
     def train(self, dataset=None):
 
         if dataset is None:
             dataset = self.training_dataset
             if dataset is None:
-                # If do_train is set to False, there is not training set for loop
+                # If do_train is set to False, there is no training set for loop
                 return 0, self.get_metric()
 
         logits, labels, losses = [], [], []
@@ -161,7 +176,7 @@ class NaiveTrainer:
         if dataset is None:
             dataset = self.validation_dataset
             if dataset is None:
-                # If do_train is set to False, there is not training set for loop
+                # If do_valid is set to False, there is no validation set for loop
                 return 0, self.get_metric()
 
         predictions, labels, losses = [], [], []
@@ -210,3 +225,20 @@ class ActiveTrainer(NaiveTrainer):
             validation_dataset,
             test_dataset,
         )
+
+    def run(self, training_dataset=None, validation_dataset=None, test_dataset=None):
+
+        pbar = trange(self.training_args.num_train_epochs, desc="Epoch")
+        for e in pbar:
+
+            train_loss, train_metrics = self.train(training_dataset)
+            valid_loss, valid_metrics = self.valid(validation_dataset)
+            test_loss, test_metrics = self.valid(test_dataset)
+
+            postfix = (
+                test_metrics["auroc"]
+                if test_metrics["auroc"] == 0
+                else valid_metrics["auroc"]
+            )
+            postfix = train_metrics["auroc"] if postfix == 0 else postfix
+            pbar.set_postfix(AUROC=f"{postfix:4f}")

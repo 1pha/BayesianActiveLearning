@@ -64,7 +64,7 @@ def main():
             test_dataset=test_dataloader if training_args.do_test else None,
         )
     )
-    trainer.train()
+    trainer.run()
 
 
 if __name__ == "__main__":
