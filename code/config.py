@@ -1,6 +1,15 @@
 import json
+import logging
+from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from enum import Enum
+
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s",
+    datefmt="%m/%d/%Y %H:%M:%S",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -20,11 +29,24 @@ class BaseArguments:
                 d[k] = f"<{k.upper()}>"
         return d
 
-    def to_json_string(self):
+    def __repr__(self):
         """
         Serializes this instance to a JSON string.
         """
         return json.dumps(self.to_dict(), indent=2)
+
+    def load_config(self, json_file, arg_name=None):
+
+        msg = "Load Configuration"
+        msg += "" if arg_name is None else f" {arg_name}"
+        logger.info(msg)
+
+        try:
+            for k, v in json_file.items():
+                setattr(self, k, v)
+        except:
+            logger.warn("Failed to Load Configuration")
+            raise
 
 
 @dataclass
@@ -193,6 +215,26 @@ class ModelArguments(BaseArguments):
     num_labels: int = field(default=16, metadata={"help": "Number of total labels."})
 
 
+def save_config(output_dir, **kwargs):
+
+    logger.info("Parse Arguments into dict.")
+    arguments = dict()
+    for arg_name, args in kwargs.items():
+        arguments[arg_name] = args.to_dict()
+
+    with open(Path(f"{output_dir}/config.json"), "w") as f:
+        json.dump(f, arguments)
+
+
+def load_config(output_dir):
+
+    json_fname = Path(f"{output_dir}/config.json")
+    with open(json_fname, "r") as f:
+        return json.load(f)
+
+    # TODO needs revision
+
+
 def parse_arguments():
 
     import torch
@@ -226,5 +268,4 @@ def parse_arguments():
 if __name__ == "__main__":
 
     data_args, training_args, model_args = parse_arguments()
-    print(data_args, training_args, model_args)
-    print(data_args.to_json_string())
+    print(load_config("./"))
