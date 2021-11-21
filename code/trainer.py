@@ -174,6 +174,7 @@ class NaiveTrainer:
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
+            del batch
             torch.cuda.empty_cache()
 
         loss = sum(losses) / len(losses)
@@ -228,6 +229,7 @@ class NaiveTrainer:
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
+            del batch
             torch.cuda.empty_cache()
 
         loss = sum(losses) / len(losses)
