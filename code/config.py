@@ -1,8 +1,34 @@
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass, field, asdict
+from enum import Enum
 
 
 @dataclass
-class DataArguments:
+class BaseArguments:
+    def to_dict(self):
+        """
+        Serializes this instance while replace `Enum` by their values (for JSON serialization support). It obfuscates
+        the token values by removing their value.
+        """
+        d = asdict(self)
+        for k, v in d.items():
+            if isinstance(v, Enum):
+                d[k] = v.value
+            if isinstance(v, list) and len(v) > 0 and isinstance(v[0], Enum):
+                d[k] = [x.value for x in v]
+            if k.endswith("_token"):
+                d[k] = f"<{k.upper()}>"
+        return d
+
+    def to_json_string(self):
+        """
+        Serializes this instance to a JSON string.
+        """
+        return json.dumps(self.to_dict(), indent=2)
+
+
+@dataclass
+class DataArguments(BaseArguments):
 
     asset_dir: str = field(
         default="../assets/",
@@ -59,7 +85,7 @@ class DataArguments:
 
 
 @dataclass
-class TrainerArguments:
+class TrainerArguments(BaseArguments):
 
     seed: int = field(default=42, metadata={"help": "Fixate seed."})
     active_learning: bool = field(
@@ -81,7 +107,7 @@ class TrainerArguments:
             "help": "Which acquisition function to use. You can either use lc(Least Confidence)/mnlp/bald/batchbald"
         },
     )
-    save_dir: str = field(
+    output_dir: str = field(
         default="default_output", metadata={"help": "Saving directory. Must be given."}
     )
     overwrite_output_dir: bool = field(
@@ -125,7 +151,7 @@ class TrainerArguments:
 
 
 @dataclass
-class ModelArguments:
+class ModelArguments(BaseArguments):
 
     model_name_or_path: str = field(
         default="bert",
@@ -141,10 +167,10 @@ class ModelArguments:
         },
     )
     embed_dim: int = field(
-        default=768, metadata={"help": "Embedding dimension used inside the models."}
+        default=256, metadata={"help": "Embedding dimension used inside the models."}
     )
     num_layers: int = field(
-        default=6, metadata={"help": "Number of hidden layers for models."}
+        default=4, metadata={"help": "Number of hidden layers for models."}
     )
     num_attention_heads: int = field(
         default=8,
@@ -183,8 +209,8 @@ def parse_arguments():
     data_args.max_seq_len = model_args.max_seq_len
 
     # TODO Check dependency
-    if not training_args.active_learning:
-        data_args.init_pct = 1.0
+    # if not training_args.active_learning:
+    #     data_args.init_pct = 1.0
 
     if training_args.use_gpu and torch.cuda.is_available():
         pass
@@ -201,3 +227,4 @@ if __name__ == "__main__":
 
     data_args, training_args, model_args = parse_arguments()
     print(data_args, training_args, model_args)
+    print(data_args.to_json_string())
