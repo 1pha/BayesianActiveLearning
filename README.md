@@ -9,7 +9,7 @@ One advantage of active learning is that we can achieve high performance with le
 
 ## Proposed Methods
 
-By controlling **models**, **way of approximation** and **sampling strategy**, I will compare which methods were - ㅅㅂ
+By controlling **models**, **way of approximation** and **sampling strategy**, I will compare which methods were
 ### Models
 + Machine Learning Models
 + Recurrent Neural Networks
@@ -32,8 +32,19 @@ datasets=
 ```
 ### Paper References
 
+*NLP + AL*
 + [Deep Bayesian Active Learning for Natural Language Processing: Results of a Large-Scale Empirical Study](https://arxiv.org/pdf/1808.05697.pdf)
-+ 
+
+*Active Learning*
++ Bald paper - [Deep Bayesian Active Learning with Image Data](https://arxiv.org/pdf/1703.02910.pdf)
++ [BatchBALD: Efficient and Diverse Batch Acquisition for Deep Bayesian Active Learning](https://arxiv.org/pdf/1906.08158.pdf)
+
 ### Code References
 + [Bayesian Neural Networks](https://github.com/JavierAntoran/Bayesian-Neural-Networks)
-+ 아 쓰기 귀찮다
++ [BatchBALD](https://github.com/BlackHC/BatchBALD)
++ [Baal](https://github.com/ElementAI/baal)
++ [MC Dropout and Model Ensembling](https://github.com/huyng/incertae)
+
+### Article Referenecs
++ [Uncertainty Sampling Cheatsheet](https://towardsdatascience.com/uncertainty-sampling-cheatsheet-ec57bc067c0b)
++ [batchbald_redux](https://blackhc.github.io/batchbald_redux/batchbald.html)
