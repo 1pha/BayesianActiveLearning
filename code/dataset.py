@@ -27,32 +27,43 @@ def build_dataset(config, split):
     full_dataset = load_dataset(config, split)
     dataset = initialize_dataset(full_dataset, config, split)
 
-    preprocessor = build_preprocessor(config)
-    vocab_size = len(preprocessor.tokenizer.vocab.strings)
-    tokenize = preprocessor.batch_tokenize
-
     area2idx = load_area2idx(config)
     num_labels = len(area2idx)
 
-    def batch_encode(example):
+    logger.info(f"Use {config.dataset_name} dataset.")
+    if config.dataset_name == "paperswithcode":
 
-        input_raw = (
-            example["title"]
-            if "abstract" not in example
-            else f"{example['title']}[SEP]{example['abstract']}"
-        )
-        input_ids = tokenize(input_raw)
-        label = [area2idx[area] for area in example["area"]]
+        logger.info("Setup Spacy Tokenizer.")
 
-        return {
-            "input_ids": input_ids,
-            "labels": label,
-        }
+        preprocessor = build_preprocessor(config)
+        vocab_size = len(preprocessor.tokenizer.vocab.strings)
+        tokenize = preprocessor.batch_tokenize
 
-    remove_columns = ["area", "title"]
-    remove_columns += ["abstract"] if "abstract" in dataset else []
-    dataset = dataset.map(batch_encode, batched=True, remove_columns=remove_columns)
-    logger.info(f"{split} dataset was properly preprocessed.")
+        def batch_encode(example):
+
+            input_raw = (
+                example["title"]
+                if "abstract" not in example
+                else f"{example['title']}[SEP]{example['abstract']}"
+            )
+            input_ids = tokenize(input_raw)
+            label = [area2idx[area] for area in example["area"]]
+
+            return {
+                "input_ids": input_ids,
+                "labels": label,
+            }
+
+        remove_columns = ["area", "title"]
+        remove_columns += ["abstract"] if "abstract" in dataset else []
+        dataset = dataset.map(batch_encode, batched=True, remove_columns=remove_columns)
+        logger.info(f"{split} dataset was properly preprocessed.")
+
+    elif config.dataset_name == "tokenized_paperswithcode":
+
+        vocab_size = 83931
+        logger.info(f"Preprocessed dataset. Use default vocab_size={vocab_size}.")
+
     return dataset, vocab_size, num_labels
 
 
@@ -68,6 +79,7 @@ def initialize_dataset(dataset, config, split):
     Returns:
         [datasets] contains with iniitial percentage of the whole data
     """
+
     logger.info(f"Initialize {split.capitalize()} Dataset.")
     try:
         # When cache file is used, below codes might raise error.
@@ -88,7 +100,7 @@ def initialize_dataset(dataset, config, split):
     if config.init_pct < 1 and split is "train":
         logger.info(f"Use {config.init_pct}% of the total dataset.")
         pool_dataset, initial_dataset = train_test_split(
-            dataset, test_size=config.init_pct, shuffle=True, random_state=config.seed
+            dataset, test_size=config.init_pct, random_state=config.seed
         )
         pool_dataset = datasets.Dataset.from_dict(pool_dataset)
         initial_dataset = datasets.Dataset.from_dict(initial_dataset)
