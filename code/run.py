@@ -4,7 +4,8 @@ import wandb
 
 from config import parse_arguments, get_wandb_config, save_config
 from dataset import build_dataset, build_dataloader
-from trainer import NaiveTrainer, ActiveTrainer
+from trainer import NaiveTrainer
+from active_trainer import ActiveTrainer
 from utils.file_utils import generate_runname_tags, check_dir
 
 logging.basicConfig(

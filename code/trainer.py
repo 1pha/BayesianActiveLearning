@@ -188,7 +188,7 @@ class NaiveTrainer:
 
         wandb.log(
             {
-                "train_loss(step)": loss,
+                "train_loss(epoch)": loss,
                 "train_acc(epoch)": metrics["acc"],
                 "train_auroc(epoch)": metrics["auroc"],
             },
@@ -243,7 +243,7 @@ class NaiveTrainer:
 
         wandb.log(
             {
-                f"{prefix}_loss(step)": loss,
+                f"{prefix}_loss(epoch)": loss,
                 f"{prefix}_acc(epoch)": metrics["acc"],
                 f"{prefix}_auroc(epoch)": metrics["auroc"],
             },
