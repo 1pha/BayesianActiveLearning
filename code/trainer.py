@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 class NaiveTrainer:
     def __init__(
         self,
+        data_args,
         training_args,
         model_args,
         training_dataset,
@@ -31,6 +32,7 @@ class NaiveTrainer:
         test_dataset,
     ):
 
+        self.data_args = data_args
         self.training_args = training_args
         self.model_args = model_args
 
@@ -181,7 +183,7 @@ class NaiveTrainer:
         loss = sum(losses) / len(losses)
 
         labels = torch.cat(labels).numpy()
-        logits = torch.vstack(logits).numpy()
+        logits = torch.vstack(logits)
         metrics = self.get_metric(y_true=labels, y_pred=logits)
 
         wandb.log(
@@ -236,7 +238,7 @@ class NaiveTrainer:
         loss = sum(losses) / len(losses)
 
         labels = torch.cat(labels).numpy()
-        logits = torch.vstack(logits).numpy()
+        logits = torch.vstack(logits)
         metrics = self.get_metric(y_true=labels, y_pred=logits)
 
         wandb.log(
@@ -259,22 +261,3 @@ class NaiveTrainer:
                 "acc": accuracy_score(y_true, y_pred.argmax(axis=1)),
                 "auroc": roc_auc_score(y_true, y_pred, multi_class="ovr"),
             }
-
-
-class ActiveTrainer(NaiveTrainer):
-    def __init__(
-        self,
-        training_args,
-        model_args,
-        training_dataset,
-        validation_dataset,
-        test_dataset,
-    ):
-        super().__init__(
-            training_args,
-            model_args,
-            training_dataset,
-            validation_dataset,
-            test_dataset,
-        )
-        self.setup_active_learning(training_args)

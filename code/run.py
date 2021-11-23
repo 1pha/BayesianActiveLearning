@@ -61,6 +61,7 @@ def main():
     #   b. Initialize Trainer
     trainer = (
         NaiveTrainer(
+            data_args,
             training_args,
             model_args,
             training_dataset=train_dataloader if training_args.do_train else None,
@@ -69,6 +70,7 @@ def main():
         )
         if not training_args.active_learning
         else ActiveTrainer(
+            data_args,
             training_args,
             model_args,
             training_dataset=train_dataloader if training_args.do_train else None,
