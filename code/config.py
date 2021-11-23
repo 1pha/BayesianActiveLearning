@@ -64,7 +64,7 @@ class DataArguments(BaseArguments):
     )
     data_dir: str = field(default="data/", metadata={"help": "Where data locates"})
     dataset_name: str = field(
-        default="paperswithcode",
+        default="tokenized_paperswithcode",  # "paperswithcode",
         metadata={"help": "The name of the dataset in arrow format."},
     )
     init_pct: float = field(
@@ -98,7 +98,7 @@ class DataArguments(BaseArguments):
     )
 
     batch_size: int = field(
-        default=64, metadata={"help": "Number of data per batch. Default=128."}
+        default=128, metadata={"help": "Number of data per batch. Default=128."}
     )
     pin_memory: bool = field(
         default=True,
@@ -122,6 +122,9 @@ class TrainerArguments(BaseArguments):
     )
     increment_pct: float = field(
         default=0.05, metadata={"help": "How much data to be incremented. (In %)"}
+    )
+    increment_num: int = field(
+        default=2625, metadata={"help": "Increment amount from pooled data."}
     )
     approximation: str = field(
         default="mcdropout",
@@ -153,7 +156,7 @@ class TrainerArguments(BaseArguments):
         metadata={"help": "Whether to test metric with test data. No peeking!"},
     )
     num_train_epochs: int = field(
-        default=10, metadata={"help": "Number of epochs to train."}
+        default=100, metadata={"help": "Number of epochs to train."}
     )
     gradient_accumulation_steps: int = field(
         default=1, metadata={"help": "Gradient accumulation steps."}
@@ -186,6 +189,12 @@ class TrainerArguments(BaseArguments):
         default=None,
         metadata={
             "help": "Run name to be displayed on wandb. If None is given, it will generate a run_name with a certain pattern."
+        },
+    )
+    FORCE_RUN_NAME: str = field(
+        default=False,
+        metadata={
+            "help": "Force run name to be other name. If True given, use TEST_RUN as run name for wandb. If string given, use that string as a run name and default is False - use generate_run_name to name it."
         },
     )
 
