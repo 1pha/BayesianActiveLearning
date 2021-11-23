@@ -126,10 +126,20 @@ class TrainerArguments(BaseArguments):
     increment_num: int = field(
         default=2625, metadata={"help": "Increment amount from pooled data."}
     )
+    acquisition_period: int = field(
+        default=1,
+        metadata={"help": "Period of acquiring extra data to training dataset."},
+    )
     approximation: str = field(
         default="mcdropout",
         metadata={
             "help": "Which approximation to use for distribution of the model weights. Use one of single/mc/ensemble"
+        },
+    )
+    num_sampling: int = field(
+        default=5,
+        metadata={
+            "help": "Number of models to be used when approximating with MC Dropout and Full Ensemble."
         },
     )
     acquisition: str = field(
