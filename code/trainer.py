@@ -147,6 +147,7 @@ class NaiveTrainer:
             if checkpoint_period % self.training_args.checkpoint_period == 0:
                 save_state(self.model, e, self.training_args)
                 checkpoint_period = 0
+            torch.cuda.empty_cache()
 
     def train(self, dataset=None):
 
@@ -170,17 +171,17 @@ class NaiveTrainer:
             self.scheduler.step()
             self.optimizer.zero_grad()
 
-            logits.append(nn.Softmax(dim=1)(logit))
+            logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
-            del batch
             torch.cuda.empty_cache()
+            del batch, logit, loss
 
         loss = sum(losses) / len(losses)
 
         labels = torch.cat(labels).numpy()
-        logits = torch.vstack(logits).detach().cpu().numpy()
+        logits = torch.vstack(logits).numpy()
         metrics = self.get_metric(y_true=labels, y_pred=logits)
 
         wandb.log(
@@ -225,17 +226,17 @@ class NaiveTrainer:
 
             loss = self.loss_fn(logit, batch["labels"])
 
-            logits.append(nn.Softmax(dim=1)(logit))
+            logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 
-            del batch
             torch.cuda.empty_cache()
+            del batch, logit, loss
 
         loss = sum(losses) / len(losses)
 
         labels = torch.cat(labels).numpy()
-        logits = torch.vstack(logits).detach().cpu().numpy()
+        logits = torch.vstack(logits).numpy()
         metrics = self.get_metric(y_true=labels, y_pred=logits)
 
         wandb.log(
@@ -276,20 +277,4 @@ class ActiveTrainer(NaiveTrainer):
             validation_dataset,
             test_dataset,
         )
-
-    def run(self, training_dataset=None, validation_dataset=None, test_dataset=None):
-
-        pbar = trange(self.training_args.num_train_epochs, desc="Epoch")
-        for e in pbar:
-
-            train_loss, train_metrics = self.train(training_dataset)
-            valid_loss, valid_metrics = self.valid(validation_dataset)
-            test_loss, test_metrics = self.valid(test_dataset)
-
-            postfix = (
-                test_metrics["auroc"]
-                if test_metrics["auroc"] == 0
-                else valid_metrics["auroc"]
-            )
-            postfix = train_metrics["auroc"] if postfix == 0 else postfix
-            pbar.set_postfix(AUROC=f"{postfix:4f}")
+        self.setup_active_learning(training_args)

@@ -89,31 +89,40 @@ def check_name(mapper, arg):
 
 def generate_runname_tags(data_args, training_args, model_args):
 
-    with open(
-        Path(f"{data_args.asset_dir}/{training_args.configuration_keys}"), "r"
-    ) as f:
-        configuration_keys = json.load(f)
+    if not training_args.FORCE_RUN_NAME:
+        with open(
+            Path(f"{data_args.asset_dir}/{training_args.configuration_keys}"), "r"
+        ) as f:
+            configuration_keys = json.load(f)
 
-    init_pct = f"INIT{data_args.init_pct * 100}%"
-    model_name = model_args.model_name_or_path.capitalize()
-    active_learning = "Naive" if not training_args.active_learning else "AL"  # boolean
-    if training_args.active_learning:
-        approximation = check_name(
-            configuration_keys["approximation"], training_args.approximation
-        )
-        acquisition = check_name(
-            configuration_keys["acquisition"], training_args.acquisition
-        )
+        init_pct = f"INIT{data_args.init_pct * 100}%"
+        model_name = model_args.model_name_or_path.capitalize()
+        active_learning = (
+            "Naive" if not training_args.active_learning else "AL"
+        )  # boolean
+        if training_args.active_learning:
+            approximation = check_name(
+                configuration_keys["approximation"], training_args.approximation
+            )
+            acquisition = check_name(
+                configuration_keys["acquisition"], training_args.acquisition
+            )
 
-        tags = [model_name, approximation, acquisition, init_pct, active_learning]
+            tags = [model_name, approximation, acquisition, init_pct, active_learning]
+
+        else:
+
+            tags = [model_name, init_pct, active_learning]
+
+        run_name = get_today()
+        run_name += " ".join(tags)
+        return run_name, tags
 
     else:
-
-        tags = [model_name, init_pct, active_learning]
-
-    run_name = get_today()
-    run_name += " ".join(tags)
-    return run_name, tags
+        if isinstance(training_args.FORCE_RUN_NAME, str):
+            return training_args.FORCE_RUN_NAME, []
+        else:
+            return "TEST_RUN", []
 
 
 if __name__ == "__main__":
