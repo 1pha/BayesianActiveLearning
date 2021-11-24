@@ -250,6 +250,16 @@ class ModelArguments(BaseArguments):
         },
     )
     num_labels: int = field(default=16, metadata={"help": "Number of total labels."})
+    rnn_cell: str = field(
+        default="lstm",
+        metadata={"help": "Choose LSTm or GRU to for recurrent family models."},
+    )
+    bidirectional: bool = field(
+        default=True,
+        metadata={
+            "help": "Wheter to use bidirectional encoder for recurrent family models. Default is True."
+        },
+    )
 
 
 def save_config(output_dir, **kwargs):
@@ -318,12 +328,16 @@ def parse_arguments():
     data_args.seed = training_args.seed
     data_args.max_seq_len = model_args.max_seq_len
 
-    # TODO Check dependency
+    # TODO Check dependency XXX For now, please manually choose init_pct!
     # if not training_args.active_learning:
     #     data_args.init_pct = 1.0
 
     if training_args.use_gpu and torch.cuda.is_available():
         pass
+
+    if training_args.acquisition in ["random", "lc", "mc", "entropy"]:
+        training_args.approximation = "single"
+        training_args.num_sampling = 1
 
     else:
         training_args.use_gpu = False
