@@ -1,7 +1,8 @@
 import logging
 
 import wandb
-from tqdm import trange
+import numpy as np
+from tqdm import trange, tqdm
 
 import torch
 import torch.nn as nn
@@ -59,7 +60,8 @@ class ActiveTrainer(NaiveTrainer):
             config.approximation = "single"
             config.num_sampling = 1
 
-        self.acquisition = AcquisitionTool(config)
+        self.num_sampling = config.num_sampling
+        self.acquisition = AcquisitionTool(self.data_args, self.training_args)
 
         return config
 
@@ -70,10 +72,8 @@ class ActiveTrainer(NaiveTrainer):
         for e in pbar:
 
             train_loss, train_metrics = self.train(training_dataset)
-            valid_loss, valid_metrics = self.valid(
-                validation_dataset=validation_dataset
-            )
-            test_loss, test_metrics = self.valid(test_dataset=test_dataset)
+            valid_loss, valid_metrics = self.valid(validation_dataset, split="valid")
+            test_loss, test_metrics = self.valid(test_dataset, split="test")
 
             wandb.log({"epoch": e}, commit=True)
 
@@ -94,6 +94,9 @@ class ActiveTrainer(NaiveTrainer):
             acquisition_period += 1
             if self.training_args.acquisition_period:
 
+                logger.info(
+                    f"Start acquiring data with {self.acquisition.name} method."
+                )
                 acquire_data, self.pool_dataset = self.acquire_batch(
                     pool_dataset=self.pool_dataset
                 )
@@ -103,48 +106,60 @@ class ActiveTrainer(NaiveTrainer):
                         (training_dataset.dataset, acquire_data)
                     )
                 )
+                logger.info(
+                    f"Acquisition done. Now use {len(training_dataset.dataset)} number of data."
+                )
                 acquisition_period = 0
 
     def acquire_batch(self, pool_dataset=None):
 
         if pool_dataset is None:
             logger.warn(f"No dataset given. Please give pool data.")
+            raise
 
-        logits = self.retrieve_logit(pool_dataset)
-        confidence_level = self.acquisition(logits)
+        if self.acquisition.method == "random":
+            idx = self.acquisition(len(pool_dataset))
 
-        idx = confidence_level.argsort()
+        else:
+            confidence_level = self.retrieve_confidence(pool_dataset)
+            idx = confidence_level.argsort().tolist()
 
         num_acquire = self.training_args.increment_num
         acquired_idx = idx[num_acquire:]
         leftover_idx = idx[:num_acquire]
 
-        acquired_data = pool_dataset[acquired_idx]
-        pool_dataset = pool_dataset[leftover_idx]
+        acquired_data = pool_dataset.dataset[acquired_idx]
+        pool_dataset = pool_dataset.dataset[leftover_idx]
 
         return acquired_data, pool_dataset
 
-    def retrieve_logit(self, dataset):
+    def retrieve_confidence(self, dataset):
 
         self.model.training = (
             True if self.training_args.approximation == "mcdropout" else False
         )
 
-        logit_models = []
-        for k in range(self.num_samplings):
+        confidence_levels = []  # ((num_model, class), ) * batch
+        pbar = tqdm(dataset, desc="Pool Dataset")
+        for batch in pbar:
+
+            if self.training_args.use_gpu:
+                batch = {k: v.cuda() for k, v in batch.items()}
 
             logits = []
-            for batch in dataset:
-                if self.training_args.use_gpu:
-                    batch = {k: v.cuda() for k, v in batch.items()}
+            for k in range(self.num_sampling):
+
                 logit, _ = self.model(batch)
-
                 logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
-
                 torch.cuda.empty_cache()
-                del batch, logit
+                del logit
 
             logits = torch.vstack(logits)
-            logit_models.append(logits)
+            confidence = self.acquisition(logits)
+            del batch
 
-        return logit_models
+            confidence_levels.append(confidence)
+
+        confidence_levels = torch.cat(confidence_levels)
+
+        return confidence_levels
