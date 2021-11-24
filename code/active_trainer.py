@@ -65,15 +65,15 @@ class ActiveTrainer(NaiveTrainer):
 
         return config
 
-    def run(self, training_dataset=None, validation_dataset=None, test_dataset=None):
+    def run(self):
 
         checkpoint_period, acquisition_period = 0, 0
         pbar = trange(self.training_args.num_train_epochs, desc="Epoch")
         for e in pbar:
 
-            train_loss, train_metrics = self.train(training_dataset)
-            valid_loss, valid_metrics = self.valid(validation_dataset, split="valid")
-            test_loss, test_metrics = self.valid(test_dataset, split="test")
+            _, train_metrics = self.train(self.training_dataset)
+            _, valid_metrics = self.valid(self.validation_dataset, split="valid")
+            _, test_metrics = self.valid(self.test_dataset, split="test")
 
             wandb.log({"epoch": e}, commit=True)
 
@@ -97,17 +97,18 @@ class ActiveTrainer(NaiveTrainer):
                 logger.info(
                     f"Start acquiring data with {self.acquisition.name} method."
                 )
-                acquire_data, self.pool_dataset = self.acquire_batch(
+                acquired_data, self.pool_dataset = self.acquire_batch(
                     pool_dataset=self.pool_dataset
                 )
 
-                training_dataset = build_dataloader(
+                self.training_dataset = build_dataloader(
                     datasets.concatenate_datasets(
-                        (training_dataset.dataset, acquire_data)
-                    )
+                        (self.training_dataset.dataset, acquired_data)
+                    ),
+                    self.data_args,
                 )
                 logger.info(
-                    f"Acquisition done. Now use {len(training_dataset.dataset)} number of data."
+                    f"Acquisition done. Now use {len(self.training_dataset.dataset)} number of data."
                 )
                 acquisition_period = 0
 
@@ -125,11 +126,14 @@ class ActiveTrainer(NaiveTrainer):
             idx = confidence_level.argsort().tolist()
 
         num_acquire = self.training_args.increment_num
-        acquired_idx = idx[num_acquire:]
-        leftover_idx = idx[:num_acquire]
+        acquired_idx = idx[:num_acquire]
+        leftover_idx = idx[num_acquire:]
 
-        acquired_data = pool_dataset.dataset[acquired_idx]
-        pool_dataset = pool_dataset.dataset[leftover_idx]
+        acquired_data = datasets.Dataset.from_dict(pool_dataset.dataset[acquired_idx])
+        pool_dataset = build_dataloader(
+            datasets.Dataset.from_dict(pool_dataset.dataset[leftover_idx]),
+            self.data_args,
+        )
 
         return acquired_data, pool_dataset
 
