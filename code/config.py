@@ -275,7 +275,7 @@ def load_config(output_dir):
 def get_wandb_config(data_args, training_args, model_args):
 
     config = dict(**model_args.to_dict())
-    config = config.update(
+    config.update(
         {
             # Training Arguments
             "active_learning": training_args.active_learning,
@@ -336,4 +336,4 @@ def parse_arguments():
 if __name__ == "__main__":
 
     data_args, training_args, model_args = parse_arguments()
-    print(load_config("./"))
+    print(get_wandb_config(data_args, training_args, model_args))
