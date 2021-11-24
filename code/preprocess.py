@@ -29,7 +29,7 @@ class Preprocessor:
                 f"Successfully loaded Spacy Tokenizer, {self.config.spacy_model}"
             )
             spacy.prefer_gpu()
-            
+
         except:
             logger.warn(f"Failed to load Spacy Tokenizer, {self.config.spacy_model}")
             raise
