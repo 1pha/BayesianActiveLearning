@@ -56,10 +56,6 @@ class ActiveTrainer(NaiveTrainer):
             If least confidence and dropout is chosen, dropout will automatically be removed.
         """
 
-        if config.acquisition in ["random", "lc", "mc", "entropy"]:
-            config.approximation = "single"
-            config.num_sampling = 1
-
         self.num_sampling = config.num_sampling
         self.acquisition = AcquisitionTool(self.data_args, self.training_args)
 
@@ -92,7 +88,7 @@ class ActiveTrainer(NaiveTrainer):
             torch.cuda.empty_cache()
 
             acquisition_period += 1
-            if self.training_args.acquisition_period:
+            if acquisition_period % self.training_args.acquisition_period == 0:
 
                 logger.info(
                     f"Start acquiring data with {self.acquisition.name} method."
