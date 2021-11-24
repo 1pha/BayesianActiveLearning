@@ -9,6 +9,7 @@ import datasets
 
 from trainer import NaiveTrainer
 from dataset import build_dataloader
+from acquisition_function import AcquisitionTool
 from utils.file_utils import save_state
 
 
@@ -57,6 +58,8 @@ class ActiveTrainer(NaiveTrainer):
         if config.acquisition in ["random", "lc", "mc", "entropy"]:
             config.approximation = "single"
             config.num_sampling = 1
+
+        self.acquisition = AcquisitionTool(config)
 
         return config
 
@@ -108,7 +111,7 @@ class ActiveTrainer(NaiveTrainer):
             logger.warn(f"No dataset given. Please give pool data.")
 
         logits = self.retrieve_logit(pool_dataset)
-        confidence_level = self.calculate_information(logits)
+        confidence_level = self.acquisition(logits)
 
         idx = confidence_level.argsort()
 
