@@ -33,31 +33,29 @@ def main():
     # 1. Initialization
     #   a. Initialize Dataset
     if training_args.do_train:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
-            data_args, "train"
-        )
-        train_dataloader = build_dataloader(
+        (
+            pool_dataset,
             dataset,
-            data_args,
-        )
+            model_args.vocab_size,
+            model_args.num_labels,
+        ) = build_dataset(data_args, "train")
+        train_dataloader = build_dataloader(dataset, data_args)
 
     if training_args.do_valid:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
+        _, dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
             data_args, "valid"
         )
-        valid_dataloader = build_dataloader(
-            dataset,
-            data_args,
-        )
+        valid_dataloader = build_dataloader(dataset, data_args)
 
     if training_args.do_test:
-        dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
+        _, dataset, model_args.vocab_size, model_args.num_labels = build_dataset(
             data_args, "test"
         )
-        test_dataloader = build_dataloader(
-            dataset,
-            data_args,
-        )
+        test_dataloader = build_dataloader(dataset, data_args)
+
+    if training_args.active_learning:
+        assert pool_dataset is not None
+        pool_dataloader = build_dataloader(pool_dataset, data_args)
 
     #   b. Initialize Trainer
     trainer = (
@@ -75,6 +73,7 @@ def main():
             training_args,
             model_args,
             training_dataset=train_dataloader if training_args.do_train else None,
+            pool_dataset=pool_dataloader,
             validation_dataset=valid_dataloader if training_args.do_valid else None,
             test_dataset=test_dataloader if training_args.do_test else None,
         )
