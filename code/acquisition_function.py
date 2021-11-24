@@ -1,57 +1,76 @@
 import math
+import json
+import logging
+from pathlib import Path
 import numpy as np
 from scipy.stats import entropy
 
 import torch
 
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s",
+    datefmt="%m/%d/%Y %H:%M:%S",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
+
 
 class AcquisitionTool:
-    def __init__(self, config):
+    def __init__(self, data_args, training_args):
 
-        self.config = config
-        self.acquisition = ACQUISITION_MAP[config.acquisition]
+        self.config = training_args
+        self.method = training_args.acquisition
+
+        with open(
+            Path(f"{data_args.asset_dir}/{training_args.configuration_keys}"), "r"
+        ) as f:
+            configuration_keys = json.load(f)
+        self.name = configuration_keys["acquisition"][self.method]
+        self.acquisition = ACQUISITION_MAP[self.method]
 
     def __call__(self, logits):
+
+        # Will return array of confidence
 
         return self.acquisition(logits)
 
 
-def check_torch(logits):
+def to_2d(logits):
 
-    if torch.is_tensor(logits):
-
-        if logits.ndim == 3 and logits.size()[1] == 1:
-            logits = logits.squeeze().numpy()
+    if logits.ndim == 3 and logits.shape[1] == 1:
+        logits = logits.squeeze()
+    elif logits.ndim == 3 and logits.shape[1] > 1:
+        logger.warn("Single model should be used for uncertainty sampling.")
+        raise
 
     return logits
 
 
 def random_selection(logits):
 
-    logits = check_torch(logits)
+    num_pool = logits.shape[1]
+    indices = np.arange(num_pool)
+    np.random.shuffle(indices)
 
-    num_pool = logits.size()[0]
-
-    return np.random.shuffle(np.arange(num_pool))
+    return indices
 
 
 def least_confidence(logits):
 
-    logits = check_torch(logits)
+    logits = to_2d(logits)
 
-    most_conf = np.nanmax(logits, axis=1)
-    num_labels = logits.shape[1]
+    most_conf = torch.max(logits, dim=1).values
+    num_labels = logits.size()[1]
     numerator = num_labels * (1 - most_conf)
     denominator = num_labels - 1
     return numerator / denominator
 
 
-def margin_of_confidence(logits: np.ndarray):
+def margin_of_confidence(logits):
 
-    logits = check_torch(logits)
-
-    part = np.partition(-logits, 1, axis=1)
-    margin = -part[:, 0] + part[:, 1]
+    logits = to_2d(logits)
+    sorted_logit = logits.sort(dim=1).values
+    margin = 1 - (sorted_logit[:, -1] - sorted_logit[:, -2])
     return margin
 
 
@@ -111,9 +130,9 @@ if __name__ == "__main__":
         return (1.0 - m) * np.asarray(p1) + m * np.asarray(p2)
 
     data_args, training_args, model_args = parse_arguments()
-    acquisition = AcquisitionTool(training_args)
+    acquisition = AcquisitionTool(data_args, training_args)
 
-    K = 4
+    K = training_args.num_sampling
 
     p1 = [0.7, 0.1, 0.1, 0.1, 0.0]
     p2 = [0.3, 0.3, 0.2, 0.2, 0.0]
