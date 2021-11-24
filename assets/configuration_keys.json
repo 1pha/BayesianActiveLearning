@@ -1,7 +1,7 @@
 {
     "approximation": {
         "single": "Single",
-        "mc": "MC-Dropout",
+        "mcdropout": "MC-Dropout",
         "ensemble": "Full-Ensemble"
     },
     "acquisition": {
