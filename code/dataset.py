@@ -25,7 +25,7 @@ def load_dataset(config, split):
 def build_dataset(config, split):
 
     full_dataset = load_dataset(config, split)
-    dataset = initialize_dataset(full_dataset, config, split)
+    pool_dataset, dataset = initialize_dataset(full_dataset, config, split)
 
     area2idx = load_area2idx(config)
     num_labels = len(area2idx)
@@ -64,7 +64,7 @@ def build_dataset(config, split):
         vocab_size = 83931
         logger.info(f"Preprocessed dataset. Use default vocab_size={vocab_size}.")
 
-    return dataset, vocab_size, num_labels
+    return pool_dataset, dataset, vocab_size, num_labels
 
 
 def initialize_dataset(dataset, config, split):
@@ -105,15 +105,19 @@ def initialize_dataset(dataset, config, split):
         pool_dataset = datasets.Dataset.from_dict(pool_dataset)
         initial_dataset = datasets.Dataset.from_dict(initial_dataset)
         logger.info(f"Total {len(initial_dataset)} of papers will be used.")
+        logger.info(
+            f"Rest of the data, {len(pool_dataset)} of papers will be used as a pool dataset."
+        )
 
     else:
         logger.info(
             f"Use the full dataset, for {split} dataset of total {len(dataset)} papers."
         )
+        pool_dataset = None
         initial_dataset = dataset
 
     logger.info(f"{split.capitalize()} dataset was successfully initialized.")
-    return initial_dataset
+    return pool_dataset, initial_dataset
 
 
 def load_area2idx(config):
