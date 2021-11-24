@@ -166,7 +166,12 @@ class NaiveTrainer:
                 batch = {k: v.cuda() for k, v in batch.items()}
             logit, _ = self.model(batch)
 
-            loss = self.loss_fn(logit, one_hot(batch["labels"]).type(torch.float))
+            loss = self.loss_fn(
+                logit,
+                one_hot(batch["labels"], num_classes=self.model_args.num_labels).type(
+                    torch.float
+                ),
+            )
             loss.backward()
             self.optimizer.step()
             self.scheduler.step()
@@ -213,7 +218,12 @@ class NaiveTrainer:
                 batch = {k: v.cuda() for k, v in batch.items()}
             logit, _ = self.model(batch)
 
-            loss = self.loss_fn(logit, one_hot(batch["labels"]).type(torch.float))
+            loss = self.loss_fn(
+                logit,
+                one_hot(batch["labels"], num_classes=self.model_args.num_labels).type(
+                    torch.float
+                ),
+            )
 
             logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
             labels.append(batch["labels"].cpu())
