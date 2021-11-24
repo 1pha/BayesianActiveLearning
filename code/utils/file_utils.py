@@ -95,7 +95,7 @@ def generate_runname_tags(data_args, training_args, model_args):
         ) as f:
             configuration_keys = json.load(f)
 
-        init_pct = f"INIT{data_args.init_pct * 100}%"
+        init_pct = f"INIT{int(data_args.init_pct * 100)}%"
         model_name = model_args.model_name_or_path.capitalize()
         active_learning = (
             "Naive" if not training_args.active_learning else "AL"
