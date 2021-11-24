@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 import torch
 import torch.nn as nn
+from torch.nn.functional import one_hot
 from torch.optim import Adam, AdamW
 from transformers import get_linear_schedule_with_warmup
 from utils.file_utils import save_state
@@ -48,7 +49,7 @@ class NaiveTrainer:
         if self.training_args.use_gpu:
             self.model = self.model.to("cuda")
 
-        self.loss_fn = nn.CrossEntropyLoss()
+        self.loss_fn = nn.BCEWithLogitsLoss()
         # TODO: more fancy way to check this out
 
         model_name = model_args.model_name_or_path
@@ -130,10 +131,8 @@ class NaiveTrainer:
         for e in pbar:
 
             train_loss, train_metrics = self.train(training_dataset)
-            valid_loss, valid_metrics = self.valid(
-                validation_dataset=validation_dataset
-            )
-            test_loss, test_metrics = self.valid(test_dataset=test_dataset)
+            valid_loss, valid_metrics = self.valid(validation_dataset, split="valid")
+            test_loss, test_metrics = self.valid(test_dataset, split="test")
 
             wandb.log({"epoch": e}, commit=True)
 
@@ -167,7 +166,7 @@ class NaiveTrainer:
                 batch = {k: v.cuda() for k, v in batch.items()}
             logit, _ = self.model(batch)
 
-            loss = self.loss_fn(logit, batch["labels"])
+            loss = self.loss_fn(logit, one_hot(batch["labels"]).type(torch.float))
             loss.backward()
             self.optimizer.step()
             self.scheduler.step()
@@ -197,27 +196,15 @@ class NaiveTrainer:
 
         return (loss, metrics)
 
-    def valid(self, validation_dataset=None, test_dataset=None):
+    def valid(self, dataset=None, split="valid"):
 
         self.model.eval()
-        if validation_dataset is None and test_dataset is None:
-            dataset = (
-                self.validation_dataset
-                if self.validation_dataset is not None
-                else self.test_dataset
-            )
-            prefix = "valid" if self.validation_dataset is not None else "test"
+        if dataset is None:
+            dataset = self.validation_dataset
+            split = "valid"
             if dataset is None:
-                # If do_valid or do_test is set to False, there is no validation set for loop
+                # If do_valid is set to False, there is no training set for loop
                 return 0, self.get_metric()
-
-        elif validation_dataset is not None:
-            dataset = validation_dataset
-            prefix = "valid"
-
-        elif test_dataset is not None:
-            dataset = test_dataset
-            prefix = "test"
 
         logits, labels, losses = [], [], []
         for batch in dataset:
@@ -226,7 +213,7 @@ class NaiveTrainer:
                 batch = {k: v.cuda() for k, v in batch.items()}
             logit, _ = self.model(batch)
 
-            loss = self.loss_fn(logit, batch["labels"])
+            loss = self.loss_fn(logit, one_hot(batch["labels"]).type(torch.float))
 
             logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
             labels.append(batch["labels"].cpu())
@@ -243,9 +230,9 @@ class NaiveTrainer:
 
         wandb.log(
             {
-                f"{prefix}_loss(epoch)": loss,
-                f"{prefix}_acc(epoch)": metrics["acc"],
-                f"{prefix}_auroc(epoch)": metrics["auroc"],
+                f"{split}_loss(epoch)": loss,
+                f"{split}_acc(epoch)": metrics["acc"],
+                f"{split}_auroc(epoch)": metrics["auroc"],
             },
             commit=False,
         )
