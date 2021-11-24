@@ -7,7 +7,7 @@
     "acquisition": {
         "random": "RANDOM",
         "lc": "LC",
-        "mc": "MARGIN",
+        "margin": "MARGIN",
         "entropy": "ENTROPY",
         "mnlp": "MNLP",
         "bald": "BALD",

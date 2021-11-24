@@ -6,20 +6,3 @@ from acquisition_function import (
     bald_acquisition,
     # batch_bald_acquisition,
 )
-
-ACQUISITION_MAP = {
-    "random": "RANDOM",
-    "lc": "LC",
-    "mc": "MARGIN",
-    "entropy": "ENTROPY",
-    "mnlp": "MNLP",
-    "bald": "BALD",
-    "batchbald": "B-BALD",
-}
-
-
-class AcquisitionTool:
-    def __init__(self, config):
-
-        self.config = config
-        self.acquisition = config.acquisition

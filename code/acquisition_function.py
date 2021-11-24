@@ -5,16 +5,34 @@ from scipy.stats import entropy
 import torch
 
 
+class AcquisitionTool:
+    def __init__(self, config):
+
+        self.config = config
+        self.acquisition = ACQUISITION_MAP[config.acquisition]
+
+    def __call__(self, logits):
+
+        return self.acquisition(logits)
+
+
 def check_torch(logits):
 
-    if isinstance(logits, torch.tensor):
-        logits = logits.numpy()
+    if torch.is_tensor(logits):
+
+        if logits.ndim == 3 and logits.size()[1] == 1:
+            logits = logits.squeeze().numpy()
+
     return logits
 
 
 def random_selection(logits):
 
     logits = check_torch(logits)
+
+    num_pool = logits.size()[0]
+
+    return np.random.shuffle(np.arange(num_pool))
 
 
 def least_confidence(logits):
@@ -72,3 +90,54 @@ def mutual_information(logits_B_K_C):
 def bald_acquisition(logits):
 
     return mutual_information(logits)
+
+
+ACQUISITION_MAP = {
+    "random": random_selection,
+    "lc": least_confidence,
+    "margin": margin_of_confidence,
+    "entropy": entropy,
+    "mnlp": "mnlp",
+    "bald": bald_acquisition,
+    "batchbald": "B-BALD",
+}
+
+if __name__ == "__main__":
+
+    from config import parse_arguments
+    import numpy as np
+
+    def get_mixture_prob_dist(p1, p2, m):
+        return (1.0 - m) * np.asarray(p1) + m * np.asarray(p2)
+
+    data_args, training_args, model_args = parse_arguments()
+    acquisition = AcquisitionTool(training_args)
+
+    K = 4
+
+    p1 = [0.7, 0.1, 0.1, 0.1, 0.0]
+    p2 = [0.3, 0.3, 0.2, 0.2, 0.0]
+    y1_ws = [get_mixture_prob_dist(p1, p2, m) for m in np.linspace(0, 1, K)]
+
+    p1 = [0.1, 0.6, 0.1, 0.1, 0.1]
+    p2 = [0.2, 0.3, 0.3, 0.2, 0.0]
+    y2_ws = [get_mixture_prob_dist(p1, p2, m) for m in np.linspace(0, 1, K)]
+
+    p1 = [0.1, 0.1, 0.5, 0.1, 0.2]
+    p2 = [0.2, 0.2, 0.3, 0.3, 0.0]
+    y3_ws = [get_mixture_prob_dist(p1, p2, m) for m in np.linspace(0, 1, K)]
+
+    p1 = [0.1, 0.1, 0.05, 0.9, 0.05]
+    p2 = [0.3, 0.2, 0.2, 0.3, 0.0]
+    y4_ws = [get_mixture_prob_dist(p1, p2, m) for m in np.linspace(0, 1, K)]
+
+    def nested_to_tensor(l):
+        return torch.stack(list(map(torch.as_tensor, l)))
+
+    ys_ws = nested_to_tensor(
+        [y1_ws, y2_ws, y3_ws, y4_ws]
+    )  # (batch, num_models, num_class)
+
+    print(ys_ws)
+
+    print(acquisition(ys_ws))
