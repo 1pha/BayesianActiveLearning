@@ -34,6 +34,7 @@ datasets=
 
 *NLP + AL*
 + [Deep Bayesian Active Learning for Natural Language Processing: Results of a Large-Scale Empirical Study](https://arxiv.org/pdf/1808.05697.pdf)
++ [Deep Active Learning for Named Entity Recognition](https://arxiv.org/pdf/1707.05928.pdf)
 
 *Active Learning*
 + Bald paper - [Deep Bayesian Active Learning with Image Data](https://arxiv.org/pdf/1703.02910.pdf)
