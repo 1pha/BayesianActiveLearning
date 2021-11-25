@@ -151,6 +151,9 @@ class TrainerArguments(BaseArguments):
             "help": "Which acquisition function to use. You can either use lc(Least Confidence)/mnlp/bald/batchbald"
         },
     )
+    save_confience: bool = field(
+        default=True, metadata={"help": "Whehter to save confidence level or not."}
+    )
     output_dir: str = field(
         default="output/default", metadata={"help": "Saving directory. Must be given."}
     )
@@ -292,7 +295,7 @@ def get_wandb_config(data_args, training_args, model_args):
         {
             # Training Arguments
             "active_learning": training_args.active_learning,
-            "increment_pct": training_args.increment_pct,
+            "increment_num": training_args.increment_num,
             "approximation": training_args.approximation,
             "acquisition": training_args.acquisition,
             "output_dir": training_args.output_dir,
@@ -341,7 +344,7 @@ def parse_arguments():
     else:
         training_args.use_gpu = False
 
-    if training_args.acquisition in ["random", "lc", "mc", "entropy"]:
+    if training_args.acquisition in ["random", "lc", "margin", "entropy"]:
         training_args.approximation = "single"
         training_args.num_sampling = 1
 

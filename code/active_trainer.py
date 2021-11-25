@@ -1,7 +1,8 @@
 import logging
+import json
+from pathlib import Path
 
 import wandb
-import numpy as np
 from tqdm import trange, tqdm
 
 import torch
@@ -58,6 +59,7 @@ class ActiveTrainer(NaiveTrainer):
 
         self.num_sampling = config.num_sampling
         self.acquisition = AcquisitionTool(self.data_args, self.training_args)
+        self.confidence_level_all = dict()
 
         return config
 
@@ -94,7 +96,7 @@ class ActiveTrainer(NaiveTrainer):
                     f"Start acquiring data with {self.acquisition.name} method."
                 )
                 acquired_data, self.pool_dataset = self.acquire_batch(
-                    pool_dataset=self.pool_dataset
+                    pool_dataset=self.pool_dataset, epoch=e
                 )
 
                 self.training_dataset = build_dataloader(
@@ -106,9 +108,13 @@ class ActiveTrainer(NaiveTrainer):
                 logger.info(
                     f"Acquisition done. Now use {len(self.training_dataset.dataset)} number of data."
                 )
+                with open(
+                    Path(f"{self.training_args.output_dir}/confidence_level.json"), "w"
+                ) as f:
+                    json.dump(self.confidence_level_all, f)
                 acquisition_period = 0
 
-    def acquire_batch(self, pool_dataset=None):
+    def acquire_batch(self, pool_dataset=None, epoch=None):
 
         if pool_dataset is None:
             logger.warn(f"No dataset given. Please give pool data.")
@@ -119,6 +125,9 @@ class ActiveTrainer(NaiveTrainer):
 
         else:
             confidence_level = self.retrieve_confidence(pool_dataset)
+            if self.training_args.save_confidence:
+                self.confidence_level_all[epoch] = confidence_level
+
             idx = confidence_level.argsort().tolist()
 
         num_acquire = self.training_args.increment_num

@@ -68,6 +68,8 @@ def least_confidence(logits):
 
 def margin_of_confidence(logits):
 
+    """tried to use torch.tensor itself, but the operation was bottleneck. Chose to use numpy instead."""
+
     logits = to_2d(logits).detach().cpu().numpy()
     part = np.partition(-logits, 1, axis=1)
     margin = -part[:, 0] + part[:, 1]
