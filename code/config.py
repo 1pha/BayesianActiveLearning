@@ -266,6 +266,10 @@ class ModelArguments(BaseArguments):
             "help": "Wheter to use bidirectional encoder for recurrent family models. Default is True."
         },
     )
+    out_channels: int = field(
+        default=256,
+        metadata={"help": "Number of channels to be used in CNN-LSTM layer."},
+    )
 
 
 def save_config(output_dir, **kwargs):
