@@ -25,10 +25,10 @@ def load_dataset(config, split):
 def build_dataset(config, split):
 
     full_dataset = load_dataset(config, split)
-    num_labels = len(set(full_dataset["area"]))
     pool_dataset, dataset = initialize_dataset(full_dataset, config, split)
 
     area2idx = load_area2idx(config)
+    num_labels = len(area2idx)
 
     logger.info(f"Use {config.dataset_name} dataset.")
     if config.dataset_name == "paperswithcode":
@@ -59,7 +59,10 @@ def build_dataset(config, split):
         dataset = dataset.map(batch_encode, batched=True, remove_columns=remove_columns)
         logger.info(f"{split} dataset was properly preprocessed.")
 
-    elif config.dataset_name == "tokenized_paperswithcode":
+    elif config.dataset_name in [
+        "tokenized_paperswithcode",
+        "paperswithcode_balanced_tokenized",
+    ]:
 
         vocab_size = 83931
         logger.info(f"Preprocessed dataset. Use default vocab_size={vocab_size}.")
