@@ -43,6 +43,10 @@ class NaiveTrainer:
 
         self.model_setup(model_args)
 
+    @property
+    def num_params(self):
+        return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+
     def model_setup(self, model_args):
 
         self.model = load_model(model_args)
@@ -59,7 +63,7 @@ class NaiveTrainer:
             )
             self.setup_transformer()
 
-        elif model_name in ["cnn-lstm"]:
+        elif model_name in ["cnnlstm", "bilstm"]:
             logger.info(
                 f"{model_name.capitalize()} was selected. Start Recurrent Networks setup."
             )
@@ -122,7 +126,9 @@ class NaiveTrainer:
 
     def setup_recurrent(self):
 
-        pass
+        self.optimizer = Adam(self.model.parameters())
+        self.optimizer.zero_grad()
+        logger.info("Successfully setup recurrent neural network settings.")
 
     def run(self):
 
@@ -174,7 +180,8 @@ class NaiveTrainer:
             )
             loss.backward()
             self.optimizer.step()
-            self.scheduler.step()
+            if self.hasattr("scheduler"):
+                self.scheduler.step()
             self.optimizer.zero_grad()
 
             logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
