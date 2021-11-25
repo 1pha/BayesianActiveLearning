@@ -33,10 +33,6 @@ class EncoderCNN(nn.Module):
 
         return output
 
-    @property
-    def num_params(self):
-        return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-
 
 class CNN_MC(nn.Module):
     def __init__(self, config):
@@ -68,9 +64,10 @@ class CNN_MC(nn.Module):
         batch_size, max_len = input_ids.size()
         word_features = self.word_encoder(input_ids)
         word_features = self.dropout(word_features)
-        output = self.linear(word_features)
+        logits = self.linear(word_features)
+        predicted_class = torch.argmax(logits, dim=1)
 
-        return output
+        return logits, predicted_class
 
 
 if __name__ == "__main__":

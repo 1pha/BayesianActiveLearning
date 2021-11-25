@@ -130,9 +130,10 @@ class BiLSTM_MC(nn.Module):
 
         word_features = self.word_encoder(input_ids, wordslen)
         word_features = self.dropout(word_features)
-        output = self.linear(word_features)
+        logits = self.linear(word_features)
+        predicted_class = torch.argmax(logits, dim=1)
 
-        return output
+        return logits, predicted_class
 
 
 if __name__ == "__main__":

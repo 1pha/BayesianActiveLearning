@@ -17,10 +17,6 @@ class BaseTransformer(nn.Module):
         predicted_class = torch.argmax(logits, dim=1)
         return logits, predicted_class
 
-    @property
-    def num_params(self):
-        return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-
 
 class Bert(BaseTransformer):
     def __init__(self, config):
