@@ -1,0 +1,18 @@
+{
+    "adversarial": 0,
+    "audio": 1,
+    "computer-code": 2,
+    "computer-vision": 3,
+    "graphs": 4,
+    "knowledge-base": 5,
+    "medical": 6,
+    "methodology": 7,
+    "miscellaneous": 8,
+    "music": 9,
+    "natural-language-processing": 10,
+    "playing-games": 11,
+    "reasoning": 12,
+    "robots": 13,
+    "speech": 14,
+    "time-series": 15
+}

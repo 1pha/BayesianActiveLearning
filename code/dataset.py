@@ -25,10 +25,10 @@ def load_dataset(config, split):
 def build_dataset(config, split):
 
     full_dataset = load_dataset(config, split)
+    num_labels = len(set(full_dataset["area"]))
     pool_dataset, dataset = initialize_dataset(full_dataset, config, split)
 
     area2idx = load_area2idx(config)
-    num_labels = len(area2idx)
 
     logger.info(f"Use {config.dataset_name} dataset.")
     if config.dataset_name == "paperswithcode":
@@ -122,7 +122,7 @@ def initialize_dataset(dataset, config, split):
 
 def load_area2idx(config):
 
-    fname = Path(f"{config.asset_dir}/{config.area2idx}")
+    fname = Path(f"{config.data_dir}/{config.dataset_name}/{config.area2idx}")
     try:
         with open(fname) as f:
             area2idx = json.load(f)
@@ -154,4 +154,5 @@ if __name__ == "__main__":
 
     data_args, training_args, model_args = parse_arguments()
 
-    print(build_dataset(data_args, "train"))
+    # print(build_dataset(data_args, "train"))
+    print(load_area2idx(data_args))

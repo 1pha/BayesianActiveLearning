@@ -64,7 +64,7 @@ class DataArguments(BaseArguments):
     )
     data_dir: str = field(default="data/", metadata={"help": "Where data locates"})
     dataset_name: str = field(
-        default="tokenized_paperswithcode",  # "paperswithcode",
+        default="paperswithcode_balanced_tokenized",  # "paperswithcode",
         metadata={"help": "The name of the dataset in arrow format."},
     )
     init_pct: float = field(
@@ -151,7 +151,7 @@ class TrainerArguments(BaseArguments):
             "help": "Which acquisition function to use. You can either use lc(Least Confidence)/mnlp/bald/batchbald"
         },
     )
-    save_confience: bool = field(
+    save_confidence: bool = field(
         default=True, metadata={"help": "Whehter to save confidence level or not."}
     )
     output_dir: str = field(

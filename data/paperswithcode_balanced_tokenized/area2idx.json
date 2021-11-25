@@ -1,0 +1,14 @@
+{
+    "adversarial": 0,
+    "computer-vision": 1,
+    "graphs": 2,
+    "knowledge-base": 3,
+    "medical": 4,
+    "miscellaneous": 5,
+    "natural-language-processing": 6,
+    "playing-games": 7,
+    "reasoning": 8,
+    "robots": 9,
+    "speech": 10,
+    "time-series": 11
+}
