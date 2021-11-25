@@ -121,10 +121,13 @@ class TrainerArguments(BaseArguments):
         },
     )
     increment_pct: float = field(
-        default=0.05, metadata={"help": "How much data to be incremented. (In %)"}
+        default=0.05,
+        metadata={
+            "help": "How much data to be incremented. (In %) This is no longer used. Please use `increment_num` to control number of data to be acquired every epoch."
+        },
     )
     increment_num: int = field(
-        default=2625, metadata={"help": "Increment amount from pooled data."}
+        default=300, metadata={"help": "Increment amount from pooled data."}
     )
     acquisition_period: int = field(
         default=1,
@@ -335,12 +338,12 @@ def parse_arguments():
     if training_args.use_gpu and torch.cuda.is_available():
         pass
 
+    else:
+        training_args.use_gpu = False
+
     if training_args.acquisition in ["random", "lc", "mc", "entropy"]:
         training_args.approximation = "single"
         training_args.num_sampling = 1
-
-    else:
-        training_args.use_gpu = False
 
     model_args.model_name_or_path = model_args.model_name_or_path.lower()
 
