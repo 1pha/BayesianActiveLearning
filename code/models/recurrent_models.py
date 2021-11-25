@@ -79,9 +79,9 @@ class EncoderRNN(baseRNN):
         batch_size = words.size()[0]
         embedded = self.embedding(words)
         embedded = self.input_dropout(embedded)
-        embedded = nn.utils.rnn.pack_padded_sequence(
-            embedded, input_lengths, batch_first=True
-        )
+        # embedded = nn.utils.rnn.pack_padded_sequence(
+        #     embedded, input_lengths, batch_first=True
+        # )
         _, output = self.rnn(embedded)
         output = output[0].transpose(0, 1).contiguous().view(batch_size, -1)
 
@@ -117,7 +117,7 @@ class BiLSTM_MC(nn.Module):
             if self.bidirectional
             else self.n_layers * self.word_hidden_dim
         )
-        self.linear = nn.Linear(hidden_size, self.config.num_labels)
+        self.linear = nn.Linear(hidden_size, config.num_labels)
         self.lossfunc = nn.CrossEntropyLoss()
 
     def forward(self, data):
@@ -137,10 +137,15 @@ class BiLSTM_MC(nn.Module):
 
 if __name__ == "__main__":
 
+    import sys
+
+    sys.path.append("../")
     from config import parse_arguments
-    from dataset import build_dataloader
+    from dataset import build_dataset, build_dataloader
 
     data_args, training_args, model_args = parse_arguments()
+    data_args.data_dir = "../../data"
+    data_args.asset_dir = "../../assets"
 
     (
         pool_dataset,
