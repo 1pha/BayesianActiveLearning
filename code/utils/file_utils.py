@@ -108,7 +108,7 @@ def generate_runname_tags(data_args, training_args, model_args):
                 configuration_keys["acquisition"], training_args.acquisition
             )
 
-            tags = [model_name, approximation, acquisition, init_pct, active_learning]
+            tags = [model_name, acquisition, approximation, init_pct, active_learning]
 
         else:
 
