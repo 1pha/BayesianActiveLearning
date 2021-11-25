@@ -120,9 +120,9 @@ def generate_runname_tags(data_args, training_args, model_args):
 
     else:
         if isinstance(training_args.FORCE_RUN_NAME, str):
-            return training_args.FORCE_RUN_NAME, []
+            return training_args.FORCE_RUN_NAME, ["TEST RUN"]
         else:
-            return "TEST_RUN", []
+            return "TEST_RUN", ["TEST RUN"]
 
 
 if __name__ == "__main__":
