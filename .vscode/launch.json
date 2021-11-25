@@ -16,7 +16,9 @@
                 "--output_dir=output/AL_test",
                 "--checkpoint_period=100",
                 "--active_learning=True",
-                "--acquisition=lc",
+                "--acquisition=margin",
+                "--FORCE_RUN_NAME=margin_cuda",
+                "--acquisition_period=1",
             ]
         }
     ]
