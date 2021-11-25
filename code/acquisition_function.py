@@ -48,7 +48,7 @@ def to_2d(logits):
 
 def random_selection(logits):
 
-    num_pool = logits.shape[1]
+    num_pool = logits.shape[0]
     indices = np.arange(num_pool)
     np.random.shuffle(indices)
 
