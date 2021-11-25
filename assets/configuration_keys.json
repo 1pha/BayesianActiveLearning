@@ -14,9 +14,9 @@
         "batchbald": "B-BALD"
     },
     "model_name_or_path": {
-        "lstm": {
+        "bilstm": {
             "family": "recurrent",
-            "name": "LSTM"
+            "name": "BiLSTM"
         },
         "cnnlstm": {
             "family": "recurrent",
