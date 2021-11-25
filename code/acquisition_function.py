@@ -68,10 +68,10 @@ def least_confidence(logits):
 
 def margin_of_confidence(logits):
 
-    logits = to_2d(logits)
-    sorted_logit = logits.sort(dim=1).values
-    margin = 1 - (sorted_logit[:, -1] - sorted_logit[:, -2])
-    return margin
+    logits = to_2d(logits).detach().cpu().numpy()
+    part = np.partition(-logits, 1, axis=1)
+    margin = -part[:, 0] + part[:, 1]
+    return torch.tensor(margin)
 
 
 def entropy(logits, dim: int, keepdim: bool = False):
