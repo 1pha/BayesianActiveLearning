@@ -37,60 +37,62 @@ class EncoderCNN(nn.Module):
     def num_params(self):
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
 
-        
+
 class CNN_MC(nn.Module):
-    def __init__(
-        self,
-        word_vocab_size,
-        word_embedding_dim,
-        word_out_channels,
-        output_size,
-        dropout_p=0.5,
-        pretrained=None,
-    ):
+    def __init__(self, config):
 
         super(CNN_MC, self).__init__()
 
-        self.word_vocab_size = word_vocab_size
-        self.word_embedding_dim = word_embedding_dim
-        self.word_out_channels = word_out_channels
+        self.word_vocab_size = config.vocab_size
+        self.word_embedding_dim = config.embed_dim
+        self.word_hidden_dim = config.intermediate_size
+        self.dropout_prob = config.dropout_prob
+        self.word_out_channels = config.out_channels
 
         self.word_encoder = EncoderCNN(
-            word_vocab_size, word_embedding_dim, word_out_channels
+            self.word_vocab_size, self.word_embedding_dim, self.word_out_channels
         )
 
-        if pretrained is not None:
-            self.word_encoder.embedding.weight = nn.Parameter(
-                torch.FloatTensor(pretrained)
-            )
+        self.dropout = nn.Dropout(p=self.dropout_prob)
 
-        self.dropout = nn.Dropout(p=dropout_p)
-
-        hidden_size = word_out_channels
-        self.linear = nn.Linear(hidden_size, output_size)
+        hidden_size = self.word_out_channels
+        self.linear = nn.Linear(hidden_size, config.num_labels)
 
         self.lossfunc = nn.CrossEntropyLoss()
 
-    def forward(self, words, tags, wordslen, usecuda=True):
+    def forward(self, data):
 
-        batch_size, max_len = words.size()
-        word_features = self.word_encoder(words, wordslen)
-        word_features = self.dropout(word_features)
-        output = self.linear(word_features)
-        loss = self.lossfunc(output, tags)
+        input_ids = data["input_ids"]
+        labels = data["labels"]
 
-        return loss
-
-    def predict(self, words, wordslen, scoreonly=False, usecuda=True):
-
-        batch_size, max_len = words.size()
-        word_features = self.word_encoder(words, wordslen)
+        batch_size, max_len = input_ids.size()
+        word_features = self.word_encoder(input_ids)
         word_features = self.dropout(word_features)
         output = self.linear(word_features)
 
-        scores = torch.max(F.softmax(output, dim=1), dim=1)[0].data.cpu().numpy()
-        if scoreonly:
-            return scores
+        return output
 
-        prediction = torch.max(output, dim=1)[1].data.cpu().numpy().tolist()
-        return scores, prediction
+
+if __name__ == "__main__":
+
+    import sys
+
+    sys.path.append("../")
+    from config import parse_arguments
+    from dataset import build_dataset, build_dataloader
+
+    data_args, training_args, model_args = parse_arguments()
+    data_args.data_dir = "../../data"
+    data_args.asset_dir = "../../assets"
+
+    (
+        pool_dataset,
+        train_dataset,
+        model_args.vocab_size,
+        model_args.num_labels,
+    ) = build_dataset(data_args, "train")
+    train_dataloader = build_dataloader(train_dataset, data_args)
+
+    batch = next(iter(train_dataloader))
+    model = CNN_MC(model_args)
+    print(model(batch).shape)
