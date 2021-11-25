@@ -150,12 +150,12 @@ class ActiveTrainer(NaiveTrainer):
             for k in range(self.num_sampling):
 
                 logit, _ = self.model(batch)
-                logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
+                logits.append(nn.Softmax(dim=1)(logit).detach())
                 torch.cuda.empty_cache()
                 del logit
 
             logits = torch.vstack(logits)
-            confidence = self.acquisition(logits)
+            confidence = self.acquisition(logits).cpu()
             del batch
 
             confidence_levels.append(confidence)
