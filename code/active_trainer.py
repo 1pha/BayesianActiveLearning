@@ -124,9 +124,9 @@ class ActiveTrainer(NaiveTrainer):
             idx = self.acquisition(len(pool_dataset))
 
         else:
-            confidence_level = self.retrieve_confidence(pool_dataset)
+            confidence_level, labels = self.retrieve_confidence(pool_dataset)
             if self.training_args.save_confidence:
-                self.confidence_level_all[epoch] = confidence_level
+                self.confidence_level_all[epoch] = (labels, confidence_level.tolist())
 
             idx = confidence_level.argsort().tolist()
 
@@ -149,6 +149,7 @@ class ActiveTrainer(NaiveTrainer):
         )
 
         confidence_levels = []  # ((num_model, class), ) * batch
+        labels = []
         pbar = tqdm(dataset, desc="Pool Dataset")
         for batch in pbar:
 
@@ -164,11 +165,13 @@ class ActiveTrainer(NaiveTrainer):
                 del logit
 
             logits = torch.vstack(logits)
+            labels.append(batch["labels"].cpu())
             confidence = self.acquisition(logits).cpu()
             del batch
 
             confidence_levels.append(confidence)
 
+        labels = torch.cat(labels).numpy()
         confidence_levels = torch.cat(confidence_levels)
 
-        return confidence_levels
+        return confidence_levels, labels
