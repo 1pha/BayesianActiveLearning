@@ -6,11 +6,6 @@ MODEL_DICT = {"bert": Bert, "bilstm": BiLSTM_MC, "cnnlstm": CNN_MC}
 def load_model(model_args):
 
     model_name_or_path = model_args.model_name_or_path
-    if model_args.load_size is not None:
-        model_args = {"base": _load_base_config, "large": _load_large_config,}[
-            model_args.load_size
-        ](model_args)
-
     model = MODEL_DICT[model_name_or_path.lower()](model_args)
     return model
 

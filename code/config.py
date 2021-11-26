@@ -4,6 +4,8 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
+from load_model import _load_base_config, _load_large_config
+
 logging.basicConfig(
     format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
@@ -365,6 +367,11 @@ def parse_arguments():
         training_args.num_sampling = 1
 
     model_args.model_name_or_path = model_args.model_name_or_path.lower()
+    if model_args.load_size is not None:
+        model_args = {
+            "base": _load_base_config,
+            "large": _load_large_config
+        }[model_args.load_size](model_args)
 
     return data_args, training_args, model_args
 
