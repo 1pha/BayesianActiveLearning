@@ -78,6 +78,8 @@ class NaiveTrainer:
             self.optimizer = Adam(self.model.parameters())
             self.optimizer.zero_grad()
 
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_args.fp16)
+
     def setup_transformer(self):
 
         try:
@@ -139,8 +141,9 @@ class NaiveTrainer:
         for e in pbar:
 
             _, train_metrics = self.train(self.training_dataset)
-            _, valid_metrics = self.valid(self.validation_dataset, split="valid")
-            _, test_metrics = self.valid(self.test_dataset, split="test")
+            with torch.no_grad():
+                _, valid_metrics = self.valid(self.validation_dataset, split="valid")
+                _, test_metrics = self.valid(self.test_dataset, split="test")
 
             wandb.log({"epoch": e}, commit=True)
 
@@ -172,21 +175,24 @@ class NaiveTrainer:
 
             if self.training_args.use_gpu:
                 batch = {k: v.cuda() for k, v in batch.items()}
-            logit, _ = self.model(batch)
 
-            loss = self.loss_fn(
-                logit,
-                one_hot(batch["labels"], num_classes=self.model_args.num_labels).type(
-                    torch.float
-                ),
-            )
-            loss.backward()
-            self.optimizer.step()
-            if hasattr(self, "scheduler"):
-                self.scheduler.step()
-            self.optimizer.zero_grad()
+            with torch.cuda.amp.autocast(self.training_args.fp16):
+                logit, _ = self.model(batch)
 
-            logits.append(nn.Softmax(dim=1)(logit).detach().cpu())
+                loss = self.loss_fn(
+                    logit,
+                    one_hot(
+                        batch["labels"], num_classes=self.model_args.num_labels
+                    ).type(torch.float),
+                )
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                if hasattr(self, "scheduler"):
+                    self.scheduler.step()
+                self.optimizer.zero_grad()
+
+            logits.append(nn.Softmax(dim=1)(logit.detach().cpu().type(torch.float32)))
             labels.append(batch["labels"].cpu())
             losses.append(loss.item())
 

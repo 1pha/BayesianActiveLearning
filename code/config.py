@@ -192,6 +192,12 @@ class TrainerArguments(BaseArguments):
     weight_decay: float = field(
         default=0.01, metadata={"help": "Decoupled weight decay to apply in AdamW."}
     )
+    fp16: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to use mixed precision. Setting this true will boost training speed."
+        },
+    )
     use_gpu: bool = field(
         default=True,
         metadata={
@@ -226,7 +232,7 @@ class ModelArguments(BaseArguments):
         default=83931, metadata={"help": "Number of vocabulary size in preprocessor."}
     )
     max_seq_len: int = field(
-        default=128,
+        default=64,
         metadata={
             "help": "Maximum sequence length. Default value is 128. If you are using abstract, please use larger sequence length."
         },
