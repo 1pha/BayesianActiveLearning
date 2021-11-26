@@ -132,7 +132,7 @@ class ActiveTrainer(NaiveTrainer):
             if self.training_args.save_confidence:
                 self.confidence_level_all[epoch] = (labels, confidence_level.tolist())
 
-            idx = confidence_level.argsort().tolist()
+            idx = confidence_level.argsort().tolist()[::-1]
 
         num_acquire = self.training_args.increment_num
         acquired_idx = idx[:num_acquire]
