@@ -1,31 +1,32 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Python: Current File",
-      "type": "python",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "args": [
-        "--do_train=True",
-        "--init_pct=0.01",
-        "--output_dir=output/random_test",
-        "--checkpoint_period=100",
-        "--active_learning=True",
-        "--acquisition=random",
-        // "--FORCE_RUN_NAME=margin_cuda",
-        "--acquisition_period=1",
-        "--model_name_or_path=bilstm",
-        "--load_size=base"
-        // "--intermediate_size=256",
-        // "--do_valid=True",
-        // "--batch_size=",
-        // "--fp16=False"
-      ]
-    }
-  ]
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--do_train=True",
+                "--init_pct=0.01",
+                "--output_dir=output/random_test",
+                "--checkpoint_period=100",
+                "--active_learning=True",
+                "--acquisition=bald",
+                "--approximation=mcdropout",
+                "--FORCE_RUN_NAME=mcdropout test",
+                "--acquisition_period=1",
+                "--model_name_or_path=bilstm",
+                "--load_size=base"
+                // "--intermediate_size=256",
+                // "--do_valid=True",
+                // "--batch_size=",
+                // "--fp16=False"
+            ]
+        }
+    ]
 }
