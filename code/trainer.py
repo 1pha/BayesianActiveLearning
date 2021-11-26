@@ -43,6 +43,8 @@ class NaiveTrainer:
 
         self.model_setup(model_args)
 
+        self.model_args.num_params = self.num_params
+
     @property
     def num_params(self):
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
