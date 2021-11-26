@@ -168,7 +168,7 @@ class ActiveTrainer(NaiveTrainer):
                 torch.cuda.empty_cache()
                 del logit
 
-            if self.acquistiion.name == "bald"
+            if self.acquistiion.name == "bald":
                 logits = torch.stack(logits).permute(1, 0, 2)
             else:
                 logits = torch.vstack(logits)
