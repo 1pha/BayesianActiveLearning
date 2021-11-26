@@ -13,12 +13,17 @@
             "args": [
                 "--do_train=True",
                 "--init_pct=0.01",
-                "--output_dir=output/AL_test",
+                "--output_dir=output/fp16_test",
                 "--checkpoint_period=100",
-                "--active_learning=True",
-                "--acquisition=margin",
+                // "--active_learning=True",
+                // "--acquisition=margin",
                 "--FORCE_RUN_NAME=margin_cuda",
-                "--acquisition_period=1",
+                // "--acquisition_period=1",
+                "--model_name_or_path=bilstm",
+                "--intermediate_size=256",
+                "--do_valid=True",
+                "--batch_size=64",
+                "--fp16=False"
             ]
         }
     ]
