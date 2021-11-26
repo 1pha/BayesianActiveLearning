@@ -44,8 +44,11 @@ datasets=
 + [Bayesian Neural Networks](https://github.com/JavierAntoran/Bayesian-Neural-Networks)
 + [BatchBALD](https://github.com/BlackHC/BatchBALD)
 + [Baal](https://github.com/ElementAI/baal)
++ [Active NLP](https://github.com/asiddhant/Active-NLP)
 + [MC Dropout and Model Ensembling](https://github.com/huyng/incertae)
++ [Active Learning](https://github.com/google/active-learning)
 
 ### Article Referenecs
 + [Uncertainty Sampling Cheatsheet](https://towardsdatascience.com/uncertainty-sampling-cheatsheet-ec57bc067c0b)
 + [batchbald_redux](https://blackhc.github.io/batchbald_redux/batchbald.html)
++ [Tutorials & Papers about Active Learning](https://github.com/yongjin-shin/awesome-active-learning)
