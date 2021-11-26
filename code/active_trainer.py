@@ -114,6 +114,9 @@ class ActiveTrainer(NaiveTrainer):
                     json.dump(self.confidence_level_all, f)
                 acquisition_period = 0
 
+                if self.training_args.retrain:
+                    self.model_setup(self.model_args)
+
     def acquire_batch(self, pool_dataset=None, epoch=None):
 
         if pool_dataset is None:

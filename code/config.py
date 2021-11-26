@@ -198,6 +198,9 @@ class TrainerArguments(BaseArguments):
             "help": "Whether to use mixed precision. Setting this true will boost training speed."
         },
     )
+    retrain: bool = field(
+        default=False, metadata={"help": "Whehter to retrain models after acquisition."}
+    )
     use_gpu: bool = field(
         default=True,
         metadata={
