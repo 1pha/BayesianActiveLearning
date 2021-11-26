@@ -98,7 +98,7 @@ class DataArguments(BaseArguments):
     )
 
     batch_size: int = field(
-        default=128, metadata={"help": "Number of data per batch. Default=128."}
+        default=256, metadata={"help": "Number of data per batch. Default=128."}
     )
     pin_memory: bool = field(
         default=True,
@@ -199,7 +199,7 @@ class TrainerArguments(BaseArguments):
         },
     )
     project: str = field(
-        default="Active Learning", metadata={"help": "Name of the wandb project name."}
+        default="Active-Learning", metadata={"help": "Name of the wandb project name."}
     )
     run_name: str = field(
         default=None,

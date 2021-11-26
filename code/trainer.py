@@ -182,7 +182,7 @@ class NaiveTrainer:
             )
             loss.backward()
             self.optimizer.step()
-            if self.hasattr("scheduler"):
+            if hasattr(self, "scheduler"):
                 self.scheduler.step()
             self.optimizer.zero_grad()
 
