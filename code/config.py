@@ -68,7 +68,7 @@ class DataArguments(BaseArguments):
         metadata={"help": "The name of the dataset in arrow format."},
     )
     init_pct: float = field(
-        default=0.05,
+        default=0.20,
         metadata={
             "help": "How much data to use in the first place. Use 1.0 for naive training with a full dataset."
         },
