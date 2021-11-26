@@ -231,6 +231,9 @@ class ModelArguments(BaseArguments):
         default="bert",
         metadata={"help": "Selection of model. One of svm/cnnlstm/bert can be used."},
     )
+    load_size: str = field(
+        default=None, metadata={"help": "Use pre-configured arguments for models."}
+    )
     vocab_size: int = field(
         default=83931, metadata={"help": "Number of vocabulary size in preprocessor."}
     )
