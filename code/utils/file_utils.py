@@ -109,6 +109,8 @@ def generate_runname_tags(data_args, training_args, model_args):
             )
 
             tags = [model_name, acquisition, approximation, init_pct, active_learning]
+            if training_args.retrain:
+                tags += ["Retrain"]
 
         else:
 

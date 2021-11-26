@@ -373,6 +373,9 @@ def parse_arguments():
             "large": _load_large_config,
         }[model_args.load_size](training_args, model_args)
 
+    if training_args.retrain:
+        training_args.acquisition_period = 20
+
     return data_args, training_args, model_args
 
 
