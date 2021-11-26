@@ -241,7 +241,7 @@ class ModelArguments(BaseArguments):
         },
     )
     embed_dim: int = field(
-        default=256, metadata={"help": "Embedding dimension used inside the models."}
+        default=512, metadata={"help": "Embedding dimension used inside the models."}
     )
     num_layers: int = field(
         default=4, metadata={"help": "Number of hidden layers for models."}
@@ -276,7 +276,7 @@ class ModelArguments(BaseArguments):
         },
     )
     out_channels: int = field(
-        default=256,
+        default=1024,
         metadata={"help": "Number of channels to be used in CNN-LSTM layer."},
     )
 

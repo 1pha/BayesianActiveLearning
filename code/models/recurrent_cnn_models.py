@@ -17,6 +17,7 @@ class EncoderCNN(nn.Module):
         self.cnn1 = nn.Conv1d(in_channels, out_channels, kernel_size=3, padding=1)
         self.cnn2 = nn.Conv1d(out_channels, out_channels, kernel_size=4, padding=1)
         self.cnn3 = nn.Conv1d(out_channels, out_channels, kernel_size=5, padding=1)
+        self.cnn4 = nn.Conv1d(out_channels, out_channels, kernel_size=6, padding=1)
 
     def forward(self, words, input_lengths=None):
 
@@ -28,7 +29,8 @@ class EncoderCNN(nn.Module):
         output1 = F.relu(self.cnn1(embedded))
         output2 = F.relu(self.cnn2(output1))
         output3 = F.relu(self.cnn3(output2))
-        output = nn.functional.max_pool1d(output3, kernel_size=output3.size(2))
+        output4 = F.relu(self.cnn3(output3))
+        output = nn.functional.max_pool1d(output4, kernel_size=output4.size(2))
         output = output.squeeze(2)
 
         return output

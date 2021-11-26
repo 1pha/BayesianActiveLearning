@@ -26,6 +26,7 @@ class Bert(BaseTransformer):
             hidden_size=config.embed_dim,
             num_hidden_layers=config.num_layers,
             num_attention_heads=config.num_attention_heads,
+            intermediate_size=config.intermediate_size,
             hidden_dropout_prob=config.dropout_prob,
             attention_probs_dropout_prob=config.dropout_prob,
             classifier_dropout=config.dropout_prob,

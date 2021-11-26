@@ -101,7 +101,7 @@ def initialize_dataset(dataset, config, split):
         pass
 
     if config.init_pct < 1 and split is "train":
-        logger.info(f"Use {config.init_pct}% of the total dataset.")
+        logger.info(f"Use {int(config.init_pct*100)}% of the total dataset.")
         pool_dataset, initial_dataset = train_test_split(
             dataset, test_size=config.init_pct, random_state=config.seed
         )
