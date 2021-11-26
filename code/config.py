@@ -98,7 +98,7 @@ class DataArguments(BaseArguments):
     )
 
     batch_size: int = field(
-        default=128, metadata={"help": "Number of data per batch. Default=128."}
+        default=256, metadata={"help": "Number of data per batch. Default=128."}
     )
     pin_memory: bool = field(
         default=True,
