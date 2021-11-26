@@ -168,7 +168,11 @@ class ActiveTrainer(NaiveTrainer):
                 torch.cuda.empty_cache()
                 del logit
 
-            logits = torch.vstack(logits)
+            if self.acquistiion.name == "bald"
+                logits = torch.stack(logits).permute(1, 0, 2)
+            else:
+                logits = torch.vstack(logits)
+
             labels.append(batch["labels"].cpu())
             confidence = self.acquisition(logits).cpu()
             del batch
