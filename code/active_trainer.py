@@ -124,7 +124,8 @@ class ActiveTrainer(NaiveTrainer):
             raise
 
         if self.acquisition.method == "random":
-            idx = self.acquisition(len(pool_dataset))
+            num_pool = len(pool_dataset.dataset)
+            idx = self.acquisition(num_pool)
 
         else:
             confidence_level, labels = self.retrieve_confidence(pool_dataset)
