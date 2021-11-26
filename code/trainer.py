@@ -131,7 +131,9 @@ class NaiveTrainer:
     def setup_recurrent(self):
 
         self.optimizer = Adam(
-            self.model.parameters(), weight_decay=self.training_args.weight_decay
+            self.model.parameters(),
+            lr=self.training_args.learning_rate,
+            weight_decay=self.training_args.weight_decay,
         )
         self.optimizer.zero_grad()
         logger.info("Successfully setup recurrent neural network settings.")
