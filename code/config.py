@@ -368,10 +368,10 @@ def parse_arguments():
 
     model_args.model_name_or_path = model_args.model_name_or_path.lower()
     if model_args.load_size is not None:
-        model_args = {
+        training_args, model_args = {
             "base": _load_base_config,
-            "large": _load_large_config
-        }[model_args.load_size](model_args)
+            "large": _load_large_config,
+        }[model_args.load_size](training_args, model_args)
 
     return data_args, training_args, model_args
 

@@ -10,7 +10,7 @@ def load_model(model_args):
     return model
 
 
-def _load_base_config(model_args):
+def _load_base_config(training_args, model_args):
 
     model_name = model_args.model_name_or_path
     model_args.embed_dim = 256
@@ -20,14 +20,18 @@ def _load_base_config(model_args):
 
     elif model_name == "cnnlstm":
         model_args.out_channels = 512
+        training_args.learning_rate = 0.001
+        training_args.weight_decay = 0
 
     elif model_name == "bilstm":
         model_args.intermediate_size = 256
+        training_args.learning_rate = 0.001
+        training_args.weight_decay = 0
 
-    return model_args
+    return training_args, model_args
 
 
-def _load_large_config(model_args):
+def _load_large_config(training_args, model_args):
 
     model_name = model_args.model_name_or_path
     if model_name == "bert":
@@ -40,7 +44,7 @@ def _load_large_config(model_args):
     elif model_name == "bilstm":
         model_args.intermediate_size = 512
 
-    return model_args
+    return training_args, model_args
 
 
 def _num_params(model):
