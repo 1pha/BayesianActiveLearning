@@ -174,7 +174,7 @@ class ActiveTrainer(NaiveTrainer):
 
             confidence_levels.append(confidence)
 
-        labels = torch.cat(labels).numpy()
+        labels = torch.cat(labels).tolist()
         confidence_levels = torch.cat(confidence_levels)
 
         return confidence_levels, labels
