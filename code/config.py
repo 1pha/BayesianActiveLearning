@@ -317,7 +317,7 @@ def get_wandb_config(data_args, training_args, model_args):
             "approximation": training_args.approximation,
             "acquisition": training_args.acquisition,
             "acquisition_period": training_args.acquisition_period,
-            "num_sampilng": training_args.num_sampilng,
+            "num_sampilng": training_args.num_sampling,
             "retrain": training_args.retrain,
             "output_dir": training_args.output_dir,
             "overwrite_output_dir": training_args.overwrite_output_dir,
