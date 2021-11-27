@@ -131,8 +131,13 @@ class ActiveTrainer(NaiveTrainer):
             num_pool = len(pool_dataset.dataset)
             idx = self.acquisition(num_pool)
 
+        elif self.acquisition.method == "batchbald":
+            confidence_level = self.retrieve_confidence(pool_dataset, logit_only=True)
+
         else:
-            confidence_level, labels = self.retrieve_confidence(pool_dataset)
+            confidence_level, labels = self.retrieve_confidence(
+                pool_dataset, logit_only=False
+            )
             if self.training_args.save_confidence:
                 self.confidence_level_all[epoch] = (labels, confidence_level.tolist())
 
@@ -150,7 +155,7 @@ class ActiveTrainer(NaiveTrainer):
 
         return acquired_data, pool_dataset
 
-    def retrieve_confidence(self, dataset):
+    def retrieve_confidence(self, dataset, logit_only=False):
 
         self.model.training = (
             True if self.training_args.approximation == "mcdropout" else False
@@ -178,12 +183,14 @@ class ActiveTrainer(NaiveTrainer):
                 logits = torch.vstack(logits)
 
             labels.append(batch["labels"].cpu())
-            confidence = self.acquisition(logits).cpu()
+
+            if not logit_only:
+                confidence = self.acquisition(logits).cpu()
+                confidence_levels.append(confidence)
             del batch
 
-            confidence_levels.append(confidence)
-
         labels = torch.cat(labels).tolist()
-        confidence_levels = torch.cat(confidence_levels)
+        if not logit_only:
+            confidence_levels = torch.cat(confidence_levels)
 
-        return confidence_levels, labels
+        return confidence_levels, labels if not logit_only else labels
