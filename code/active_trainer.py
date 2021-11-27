@@ -95,9 +95,13 @@ class ActiveTrainer(NaiveTrainer):
                 logger.info(
                     f"Start acquiring data with {self.acquisition.name} method."
                 )
-                acquired_data, self.pool_dataset = self.acquire_batch(
-                    pool_dataset=self.pool_dataset, epoch=e
-                )
+                try:
+                    acquired_data, self.pool_dataset = self.acquire_batch(
+                        pool_dataset=self.pool_dataset, epoch=e
+                    )
+                except:
+                    logger.info("No more pooling data. Quit acquisition.")
+                    break
 
                 self.training_dataset = build_dataloader(
                     datasets.concatenate_datasets(
@@ -168,7 +172,7 @@ class ActiveTrainer(NaiveTrainer):
                 torch.cuda.empty_cache()
                 del logit
 
-            if self.acquisition.name == "bald":
+            if self.acquisition.method == "bald":
                 logits = torch.stack(logits).permute(1, 0, 2)
             else:
                 logits = torch.vstack(logits)
