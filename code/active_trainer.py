@@ -100,8 +100,9 @@ class ActiveTrainer(NaiveTrainer):
                         pool_dataset=self.pool_dataset, epoch=e
                     )
                 except:
-                    logger.info("No more pooling data. Quit acquisition.")
-                    break
+                    # logger.info("No more pooling data. Quit acquisition.")
+                    # break
+                    raise
 
                 self.training_dataset = build_dataloader(
                     datasets.concatenate_datasets(
@@ -132,7 +133,8 @@ class ActiveTrainer(NaiveTrainer):
             idx = self.acquisition(num_pool)
 
         elif self.acquisition.method == "batchbald":
-            confidence_level = self.retrieve_confidence(pool_dataset, logit_only=True)
+            logits, labels = self.retrieve_confidence(pool_dataset, logit_only=True)
+            confidence_level = self.acquisition(logits)
 
         else:
             confidence_level, labels = self.retrieve_confidence(
@@ -162,6 +164,7 @@ class ActiveTrainer(NaiveTrainer):
         )
 
         confidence_levels = []  # ((num_model, class), ) * batch
+        logits = []  # only used for batchbald
         labels = []
         pbar = tqdm(dataset, desc="Pool Dataset")
         for batch in pbar:
@@ -187,10 +190,15 @@ class ActiveTrainer(NaiveTrainer):
             if not logit_only:
                 confidence = self.acquisition(logits).cpu()
                 confidence_levels.append(confidence)
+            else:
+                logits.append(logits.detach().cpu())
             del batch
 
         labels = torch.cat(labels).tolist()
         if not logit_only:
             confidence_levels = torch.cat(confidence_levels)
 
-        return confidence_levels, labels if not logit_only else labels
+        else:
+            logits = torch.stack(logits).permute(1, 0, 2)
+
+        return (confidence_levels, labels) if not logit_only else (logits, labels)

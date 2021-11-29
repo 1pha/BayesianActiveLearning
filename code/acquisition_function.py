@@ -218,7 +218,7 @@ def batchbald_batch(
         candidate_scores.append(candidate_score.item())
 
     # return CandidateBatch(candidate_scores, candidate_indices)
-    return candidate_scores
+    return candidate_scores, candidate_indices
 
 
 ACQUISITION_MAP = {
