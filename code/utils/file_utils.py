@@ -113,8 +113,8 @@ def generate_runname_tags(data_args, training_args, model_args):
                 acquisition,
                 approximation,
                 init_pct,
-                training_args.num_sampling,
-                training_args.acquisition_period,
+                f"SAMPLING {training_args.num_sampling}",
+                f"ACQ_PERIOD {training_args.acquisition_period}",
                 active_learning,
             ]
             if training_args.retrain:
