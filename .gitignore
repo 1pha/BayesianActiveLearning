@@ -1,6 +1,7 @@
 # Case of byproducts
 output/
 wandb/
+output_old/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
